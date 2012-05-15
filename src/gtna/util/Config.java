@@ -48,13 +48,13 @@ import java.util.Vector;
 public class Config {
 	private static Properties properties;
 
-	private static HashMap<String, String> override;
+	private static HashMap<String, String> overwrite;
 
 	private static String defaultConfigFolder = "./config/";
 
 	public static String get(String key) {
 		String temp = null;
-		if (override != null && (temp = override.get(key)) != null) {
+		if (overwrite != null && (temp = overwrite.get(key)) != null) {
 			return temp;
 		}
 		if (properties == null) {
@@ -66,6 +66,17 @@ public class Config {
 			}
 		}
 		return properties.getProperty(key);
+	}
+
+	public static Properties getProperties() {
+		if (Config.properties == null) {
+			try {
+				Config.init();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return Config.properties;
 	}
 
 	public static boolean getBoolean(String key) {
@@ -80,6 +91,20 @@ public class Config {
 		return Double.parseDouble(get(key));
 	}
 
+	public static float getFloat(String key) {
+		return Float.parseFloat(get(key));
+	}
+
+	public static void appendToList(String key, String value) {
+		String oldValue = Config.get(key);
+		if (oldValue == null || oldValue.length() == 0) {
+			Config.overwrite(key, value);
+		} else {
+			Config.overwrite(key,
+					oldValue + Config.get("CONFIG_LIST_SEPARATOR") + value);
+		}
+	}
+
 	public static void overwrite(String key, String value) {
 		try {
 			if (properties == null) {
@@ -89,23 +114,23 @@ public class Config {
 					e.printStackTrace();
 				}
 			}
-			override.put(key, value);
+			overwrite.put(key, value);
 		} catch (NullPointerException e) {
-			override = new HashMap<String, String>();
-			override.put(key, value);
+			overwrite = new HashMap<String, String>();
+			overwrite.put(key, value);
 		}
 	}
 
 	public static void reset(String key) {
-		if (override != null) {
-			if (override.containsKey(key)) {
-				override.remove(key);
+		if (overwrite != null) {
+			if (overwrite.containsKey(key)) {
+				overwrite.remove(key);
 			}
 		}
 	}
 
 	public static void resetAll() {
-		override = new HashMap<String, String>();
+		overwrite = new HashMap<String, String>();
 	}
 
 	public static void addFile(String file) throws IOException {
@@ -125,7 +150,7 @@ public class Config {
 
 	public static void initWithFiles(String[] file) throws IOException {
 		properties = null;
-		override = null;
+		overwrite = null;
 		for (int i = 0; i < file.length; i++) {
 			addFile(file[i]);
 		}
@@ -154,7 +179,7 @@ public class Config {
 		initWithFolders(new String[] { folder });
 	}
 
-	private static void init() throws IOException {
+	public static void init() throws IOException {
 		// initWithFolder(defaultConfigFolder);
 		Vector<String> v = new Vector<String>();
 		File folder = new File(defaultConfigFolder);
@@ -168,63 +193,19 @@ public class Config {
 		initWithFolders(Util.toStringArray(v));
 	}
 
-	public static boolean containsMetric(String key) {
-		String[] names = Config.get("METRICS").split(
-				Config.get("CONFIG_LIST_SEPARATOR"));
-		for (int i = 0; i < names.length; i++) {
-			if (key.equals(names[i].trim())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static Metric[] getMetrics() {
-		String[] names = Config.get("METRICS").split(
-				Config.get("CONFIG_LIST_SEPARATOR"));
-		Metric[] metrics = new Metric[names.length];
-		
-		for (int i = 0; i < names.length; i++) {
-			try {
-				System.out.println(names[i]);
-				metrics[i] = (Metric) ClassLoader.getSystemClassLoader()
-						.loadClass(Config.get(names[i].trim() + "_CLASS"))
-						.newInstance();
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-		return metrics;
-	}
-
-	public static boolean containsData(String key) {
-		String[] data = getData();
-		for (int i = 0; i < data.length; i++) {
-			if (key.equals(data[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public static boolean containsKey(String key) {
 		return properties.containsKey(key);
 	}
 
-	public static String[] getData() {
-		Metric[] metrics = getMetrics();
+	public static String[] getData(Metric[] metrics) {
 		int counter = 0;
 		for (int i = 0; i < metrics.length; i++) {
-			counter += metrics[i].dataKeys().length;
+			counter += metrics[i].getDataKeys().length;
 		}
 		String[] data = new String[counter];
 		int index = 0;
 		for (int i = 0; i < metrics.length; i++) {
-			String[] keys = metrics[i].dataKeys();
+			String[] keys = metrics[i].getDataKeys();
 			for (int j = 0; j < keys.length; j++) {
 				data[index++] = keys[j];
 			}
@@ -232,11 +213,11 @@ public class Config {
 		return data;
 	}
 
-	public static String[][] allKeys(String from) {
-		Metric[] metrics = Config.getMetrics();
+	public static String[][] allKeys(String from, Metric[] metrics) {
+		// Metric[] metrics = Config.getMetrics();
 		String[][] keys = new String[metrics.length][];
 		for (int i = 0; i < metrics.length; i++) {
-			keys[i] = Config.keys(metrics[i].key() + from);
+			keys[i] = Config.keys(metrics[i].getKey() + from);
 		}
 		return keys;
 	}

@@ -39,10 +39,13 @@ import gtna.graph.Edges;
 import gtna.graph.Graph;
 import gtna.graph.Node;
 import gtna.networks.Network;
-import gtna.networks.NetworkImpl;
-import gtna.routing.RoutingAlgorithm;
 import gtna.transformation.Transformation;
 import gtna.util.Util;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.DoubleArray2dParameter;
+import gtna.util.parameter.IntArrayParameter;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -76,7 +79,7 @@ import java.util.Random;
  * @author benni
  * 
  */
-public class Communities3 extends NetworkImpl implements Network {
+public class Communities3 extends Network {
 	private int[] sizes;
 
 	private double[][] p;
@@ -94,11 +97,12 @@ public class Communities3 extends NetworkImpl implements Network {
 	public static final int RANDOM_ORDER = 3;
 
 	public Communities3(int[] sizes, double[][] p, int order,
-			boolean bidirectional, RoutingAlgorithm r, Transformation[] t) {
-		super("COMMUNITIES3", Util.sum(sizes), new String[] {
-				"COMMUNITY_SIZES", "INTER_COMMUNITY_LINKS", "ORDER",
-				"BIDIRECTIONAL" }, new String[] { Util.toFolderString(sizes),
-				Util.toFolderString(p), "" + order, "" + bidirectional }, r, t);
+			boolean bidirectional, Transformation[] t) {
+		super("COMMUNITIES_NETWORK_3", Util.sum(sizes), new Parameter[] {
+				new IntArrayParameter("COMMUNITY_SIZES", sizes),
+				new DoubleArray2dParameter("INTER_COMMUNITY_LINKS", p),
+				new IntParameter("ORDER", order),
+				new BooleanParameter("BIDIRECTIONAL", bidirectional) }, t);
 		this.sizes = sizes;
 		this.p = p;
 		this.order = order;
@@ -110,8 +114,8 @@ public class Communities3 extends NetworkImpl implements Network {
 	}
 
 	public Graph generate() {
-		Graph graph = new Graph(this.description());
-		Node[] nodes = Node.init(this.nodes(), graph);
+		Graph graph = new Graph(this.getDescription());
+		Node[] nodes = Node.init(this.getNodes(), graph);
 		Random rand = new Random(System.currentTimeMillis());
 		// init communities
 		this.communities = new Node[this.sizes.length][];

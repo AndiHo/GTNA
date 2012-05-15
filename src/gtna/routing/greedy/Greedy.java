@@ -50,7 +50,8 @@ import gtna.id.DPartition;
 import gtna.routing.Route;
 import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
-import gtna.routing.RoutingAlgorithmImpl;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -62,8 +63,9 @@ import org.apfloat.Apfloat;
  * @author benni
  * 
  */
-public class Greedy extends RoutingAlgorithmImpl implements RoutingAlgorithm {
-	
+
+public class Greedy extends RoutingAlgorithm {
+
 	private DIdentifierSpace idSpaceD;
 	private DPartition[] pD;
 
@@ -76,12 +78,12 @@ public class Greedy extends RoutingAlgorithmImpl implements RoutingAlgorithm {
 	private int ttl;
 
 	public Greedy() {
-		super("GREEDY", new String[] {}, new String[] {});
+		super("GREEDY");
 		this.ttl = Integer.MAX_VALUE;
 	}
 
 	public Greedy(int ttl) {
-		super("GREEDY", new String[] { "TTL" }, new String[] { "" + ttl });
+		super("GREEDY", new Parameter[] { new IntParameter("TTL", ttl) });
 		this.ttl = ttl;
 	}
 

@@ -38,6 +38,9 @@ package gtna.networks.model.placementmodels.models;
 import gtna.networks.model.placementmodels.PlacementModelImpl;
 import gtna.networks.model.placementmodels.PlacementNotPossibleException;
 import gtna.networks.model.placementmodels.Point;
+import gtna.util.parameter.DoubleParameter;
+import gtna.util.parameter.Parameter;
+import gtna.util.parameter.StringParameter;
 
 import java.util.Random;
 
@@ -73,13 +76,8 @@ public class CirclePlacementModel extends PlacementModelImpl {
 	private double radius;
 	private DistributionType oalpha;
 	private DistributionType od;
-	private final int maxTries = 100;
 
 	/**
-	 * @param width
-	 *            The width of the field in which the nodes are to be placed.
-	 * @param height
-	 *            The height of the field in which the nodes are to be placed.
 	 * @param radius
 	 *            The radius of the circle on which the nodes are to be placed.
 	 * @param oalpha
@@ -94,37 +92,43 @@ public class CirclePlacementModel extends PlacementModelImpl {
 	 *            placed at distance "r" from the center. If "UNIFORM", the
 	 *            distance from the center is uniformly distributed, if "NORMAL"
 	 *            it is normally distributed.
+	 * @param inCenter
+	 *            If set to <code>true</code> will place a node in the center of
+	 *            the circle.
 	 */
-	public CirclePlacementModel(double width, double height, double radius,
-			DistributionType oalpha, DistributionType od) {
-		setWidth(width);
-		setHeight(height);
+	public CirclePlacementModel(double radius, DistributionType oalpha,
+			DistributionType od, boolean inCenter) {
 		this.radius = radius;
 		this.oalpha = oalpha;
+		setInCenter(inCenter);
 		this.od = od;
 		setKey("CIRCLE");
-		setAdditionalConfigKeys(new String[] { "RADIUS", "OALPHA", "OD" });
-		setAdditionalConfigValues(new String[] { Double.toString(radius),
-				oalpha.toString(), od.toString() });
+		setAdditionalConfigParameters(new Parameter[] {
+				new DoubleParameter("RADIUS", radius),
+				new StringParameter("OALPHA", oalpha.toString()),
+				new StringParameter("OD", od.toString()) });
 	}
 
 	/**
 	 * Places the nodes on a circle around the center of the field.
 	 */
 	@Override
-	public Point[] place(int count) {
+	public Point[] place(int count, Point center, Point boxCenter, double boxWidth, double boxHeight) {
 		Random rnd = new Random();
 		Point[] ret = new Point[count];
+		int i = 0;
+		if (getInCenter()) {
+			ret[0] = new Point(center.getX(), center.getY());
+			i = 1;
+		}
 		double gamma = (2 * Math.PI) / (double) count;
 		double alpha = 0;
 		double d = 0;
 		double x, y;
-		double centerx = getWidth() / 2;
-		double centery = getHeight() / 2;
 
 		int tries;
-
-		for (int i = 0; i < count; i++) {
+		
+		while(i < count) {
 			tries = 0;
 			do {
 
@@ -153,19 +157,19 @@ public class CirclePlacementModel extends PlacementModelImpl {
 					break;
 				}
 
-				x = centerx + d * Math.cos(alpha);
-				y = centery + d * Math.sin(alpha);
+				x = center.getX() + d * Math.cos(alpha);
+				y = center.getY() + d * Math.sin(alpha);
 				tries++;
-			} while ((x < 0 || x > getWidth() || y < 0 || y > getHeight())
+			} while (!inBounds(x, y, boxCenter, boxWidth, boxHeight)
 					&& tries <= maxTries);
 			if (tries > maxTries)
 				throw new PlacementNotPossibleException("Could not place node "
-						+ i + " for settings: center=(" + centerx + ", "
-						+ centery + "), radius=" + radius + ", F=("
-						+ getWidth() + ", " + getHeight() + "), count=" + count
+						+ i + " for settings: center=(" + center.getX() + ", "
+						+ center.getY() + "), radius=" + radius + ", F=("
+						+ boxWidth + ", " + boxHeight + "), count=" + count
 						+ ", Distribs=(" + oalpha + ", " + od + ")");
 			ret[i] = new Point(x, y);
-
+			i++;
 		}
 
 		return ret;

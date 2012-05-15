@@ -39,9 +39,11 @@ import gtna.graph.Edges;
 import gtna.graph.Graph;
 import gtna.graph.Node;
 import gtna.networks.Network;
-import gtna.networks.NetworkImpl;
 import gtna.routing.RoutingAlgorithm;
 import gtna.transformation.Transformation;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.DoubleParameter;
+import gtna.util.parameter.Parameter;
 
 import java.util.Random;
 
@@ -64,36 +66,45 @@ import java.util.Random;
  * @author benni
  * 
  */
-public class Gilbert extends NetworkImpl implements Network {
-	private double EDGES;
+public class Gilbert extends Network {
+	private double p;
 
-	private boolean BIDIRECTIONAL;
+	private boolean bidirectional;
 
-	public Gilbert(int nodes, double EDGES, boolean BIDIRECTIONAL,
+	public Gilbert(int nodes, double p, boolean bidirectional,
+			Transformation[] t) {
+		super("GILBERT", nodes, new Parameter[] {
+				new DoubleParameter("C", p * nodes),
+				new BooleanParameter("BIDIRECTIONAL", bidirectional) }, t);
+		this.p = p;
+		this.bidirectional = bidirectional;
+	}
+
+	public static Gilbert[] get(int nodes, double[] p, boolean bidirectional,
 			RoutingAlgorithm ra, Transformation[] t) {
-		super("GILBERT", nodes, new String[] { "EDGES", "BIDIRECTIONAL" },
-				new String[] { "" + EDGES, "" + BIDIRECTIONAL }, ra, t);
-		this.EDGES = EDGES;
-		this.BIDIRECTIONAL = BIDIRECTIONAL;
+		Gilbert[] nw = new Gilbert[p.length];
+		for (int i = 0; i < p.length; i++) {
+			nw[i] = new Gilbert(nodes, p[i], bidirectional, t);
+		}
+		return nw;
 	}
 
 	public Graph generate() {
-		Graph graph = new Graph(this.description());
+		Graph graph = new Graph(this.getDescription());
 		Random rand = new Random(System.currentTimeMillis());
-		Node[] nodes = Node.init(this.nodes(), graph);
-		double p = (double) this.EDGES / (double) (this.nodes() * this.nodes());
-		if (this.BIDIRECTIONAL) {
-			p /= 2;
-		}
-		Edges edges = new Edges(nodes, (int) (this.EDGES * 1.05));
+		Node[] nodes = Node.init(this.getNodes(), graph);
+		Edges edges = new Edges(nodes,
+				(int) (this.p * this.getNodes() * this.getNodes()));
+		// double P = this.bidirectional ? this.p / 2 : this.p;
+		double P = this.p;
 		for (int i = 0; i < nodes.length; i++) {
 			for (int j = 0; j < nodes.length; j++) {
 				if (i == j) {
 					continue;
 				}
-				if (rand.nextDouble() < p) {
+				if (rand.nextDouble() <= P) {
 					edges.add(i, j);
-					if (this.BIDIRECTIONAL) {
+					if (this.bidirectional) {
 						edges.add(j, i);
 					}
 				}

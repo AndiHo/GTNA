@@ -40,7 +40,9 @@ import gtna.networks.p2p.chord.ChordIdentifier;
 import gtna.networks.p2p.chord.ChordIdentifierSpace;
 import gtna.networks.p2p.chord.ChordPartition;
 import gtna.transformation.Transformation;
-import gtna.transformation.TransformationImpl;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -54,8 +56,7 @@ import java.util.Random;
  * @author benni
  * 
  */
-public class RandomChordIDSpace extends TransformationImpl implements
-		Transformation {
+public class RandomChordIDSpace extends Transformation {
 	private int realities;
 
 	private int bits;
@@ -63,17 +64,19 @@ public class RandomChordIDSpace extends TransformationImpl implements
 	private boolean uniform;
 
 	public RandomChordIDSpace(int bits, boolean uniform) {
-		super("RANDOM_CHORD_ID_SPACE", new String[] { "BITS", "ID_SELECTION" },
-				new String[] { "" + bits, uniform ? "uniform" : "random" });
+		super("RANDOM_CHORD_ID_SPACE", new Parameter[] {
+				new IntParameter("BITS", bits),
+				new BooleanParameter("ID_SELECTION", uniform) });
 		this.bits = bits;
 		this.uniform = uniform;
 		this.realities = 1;
 	}
 
 	public RandomChordIDSpace(int bits, boolean uniform, int realities) {
-		super("RANDOM_CHORD_ID_SPACE", new String[] { "BITS", "REALITIES" },
-				new String[] { "" + bits, uniform ? "uniform" : "random",
-						"" + realities });
+		super("RANDOM_CHORD_ID_SPACE", new Parameter[] {
+				new IntParameter("BITS", bits),
+				new IntParameter("REALITIES", realities),
+				new BooleanParameter("ID_SELECTION", uniform) });
 		this.bits = bits;
 		this.uniform = uniform;
 		this.realities = realities;
@@ -95,7 +98,8 @@ public class RandomChordIDSpace extends TransformationImpl implements
 			} else {
 				HashSet<String> idSet = new HashSet<String>();
 				for (int i = 0; i < ids.length; i++) {
-					ChordIdentifier id = (ChordIdentifier) idSpace.randomID(rand);
+					ChordIdentifier id = (ChordIdentifier) idSpace
+							.randomID(rand);
 					while (idSet.contains(id.toString())) {
 						id = (ChordIdentifier) idSpace.randomID(rand);
 					}

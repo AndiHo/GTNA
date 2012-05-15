@@ -36,6 +36,9 @@
 package gtna.networks.model.placementmodels;
 
 import gtna.util.Util;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.Parameter;
+import gtna.util.parameter.StringParameter;
 
 /**
  * 
@@ -46,56 +49,17 @@ import gtna.util.Util;
  * <code>setKey(...)</code>. If additional configuration keys and values are
  * needed, they can be set by calling <code>setAdditionalConfigKeys(...)</code>
  * (...values(...)). These will be returned by <code>getConfigKeys()</code> in
- * addition to the key of the <code>PlacementModel</code> and the width and the
- * height of the field.
+ * addition to the key of the <code>PlacementModel</code> and the value of
+ * inCenter.
  * 
  * @author Philipp Neubrand
  * 
  */
 public abstract class PlacementModelImpl implements PlacementModel {
-	private double width;
-	private double height;
 	private String key;
-	private String[] additionalConfigKeys;
-	private String[] additionalConfigValues;
-
-	/**
-	 * Getter for the height of the field.
-	 * 
-	 * @return The height of field.
-	 */
-	public double getHeight() {
-		return height;
-	}
-
-	/**
-	 * Getter for the width of the field.
-	 * 
-	 * @return The width of the field.
-	 */
-	public double getWidth() {
-		return width;
-	}
-
-	/**
-	 * Setter for the height of the field.
-	 * 
-	 * @param height
-	 *            The new height of the field.
-	 */
-	public void setHeight(double height) {
-		this.height = height;
-	}
-
-	/**
-	 * Setter for the width of the field.
-	 * 
-	 * @param width
-	 *            The new width of the field.
-	 */
-	public void setWidth(double width) {
-		this.width = width;
-	}
+	protected final int maxTries = 100;
+	private boolean inCenter;
+	private Parameter[] additionalConfigParams;
 
 	/**
 	 * Getter for the key of the particular <code>PlacementModel</code>.
@@ -116,52 +80,78 @@ public abstract class PlacementModelImpl implements PlacementModel {
 		this.key = key;
 	}
 
-	/**
-	 * Getter for the configuration keys. Returns "KEY", "WIDTH", "HEIGHT" as
-	 * well as any additional configuration keys set by
-	 * <code>setAdditionalConfigKeys()</code>.
-	 * 
-	 * @return A string array containing all the configuration keys.
-	 */
-	public String[] getConfigKeys() {
-		return Util.mergeArrays(new String[] { "KEY", "WIDTH", "HEIGHT" },
-				additionalConfigKeys);
+	@Override
+	public Parameter[] getConfigParameters() {
+		return Util.mergeArrays(new Parameter[] {
+				new StringParameter("KEY", key),
+				new BooleanParameter("IN_CENTER", getInCenter()) },
+				getAdditionalConfigParameters());
 	}
 
 	/**
-	 * Setter for the additional configuration keys. Those will be returned in
-	 * addition to "KEY", "WIDTH", "HEIGHT" by <code>getConfigKeys()</code>.
+	 * Getter for the additional configuration parameters.
 	 * 
-	 * @param arr
-	 *            The new additional configuration keys.
+	 * @return An array containing the additional configuration parameters.
 	 */
-	public void setAdditionalConfigKeys(String[] arr) {
-		additionalConfigKeys = arr;
+	protected Parameter[] getAdditionalConfigParameters() {
+		return additionalConfigParams;
 	}
 
 	/**
-	 * Setter for the additional configuration values. Those will be returned in
-	 * addition to the key, the width and the height by
-	 * <code>getConfigValues()</code>.
+	 * Setter for the additional configuration parameters, those will be
+	 * returned in addition to the key of the PlacementModel.
 	 * 
-	 * @param arr
-	 *            The new additional configuration values.
+	 * @param parameters
+	 *            The additional parameters.
 	 */
-	public void setAdditionalConfigValues(String[] arr) {
-		additionalConfigValues = arr;
+	protected void setAdditionalConfigParameters(Parameter[] params) {
+		additionalConfigParams = params;
 	}
 
 	/**
-	 * Getter for the configuration values. Returns key, width and height as
-	 * well as any additional configuration keys set by
-	 * <code>setAdditionalConfigValues()</code>.
+	 * Setter for inCenter.
 	 * 
-	 * @return A string array containing all the configuration values.
+	 * @param inCenter
+	 *            The new value for inCenter.
 	 */
-	public String[] getConfigValues() {
-		return Util.mergeArrays(new String[] { getKey(),
-				Double.toString(getWidth()), Double.toString(getHeight()) },
-				additionalConfigValues);
+	public void setInCenter(boolean inCenter) {
+		this.inCenter = inCenter;
+	}
+
+	/**
+	 * Getter for inCenter.
+	 * 
+	 * @return The value of inCenter.
+	 */
+	public boolean getInCenter() {
+		return inCenter;
+	}
+
+	/**
+	 * Determines if a given point is inside the bounds defined by the given
+	 * box.
+	 * 
+	 * @param x
+	 *            The x coordinate that is to be tested.
+	 * @param y
+	 *            The y coordinate that is to be tested.
+	 * @param boxCenter
+	 *            The center of the bounding box.
+	 * @param boxWidth
+	 *            The width of the bounding box.
+	 * @param boxHeight
+	 *            The height of the bounding box.
+	 * @return True, if the given point is inside the box (boxCenter.getX() -
+	 *         boxWidth / 2, boxCenter.getY() - boxHeight / 2) and
+	 *         (boxCenter.getX() + boxWidth() / 2, boxCenter.getY() + boxHeight
+	 *         / 2).
+	 */
+	protected boolean inBounds(double x, double y, Point boxCenter,
+			double boxWidth, double boxHeight) {
+		return (x >= (boxCenter.getX() - (boxWidth / 2))
+				|| x <= boxCenter.getX() + (boxWidth / 2)
+				|| y >= boxCenter.getY() - (boxHeight / 2) || y <= (boxCenter
+				.getY() + (boxHeight / 2)));
 	}
 
 }

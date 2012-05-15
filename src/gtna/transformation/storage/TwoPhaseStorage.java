@@ -47,7 +47,8 @@ import gtna.id.IdentifierSpace;
 import gtna.id.storage.Storage;
 import gtna.id.storage.StorageList;
 import gtna.transformation.Transformation;
-import gtna.transformation.TransformationImpl;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.Parameter;
 
 import java.math.BigInteger;
 
@@ -56,14 +57,13 @@ import java.math.BigInteger;
  * 
  */
 @SuppressWarnings("rawtypes")
-public class TwoPhaseStorage extends TransformationImpl implements
-		Transformation {
+public class TwoPhaseStorage extends Transformation {
 
 	private boolean register;
 
 	public TwoPhaseStorage(boolean register) {
-		super("TWO_PHASE_STORAGE", new String[] { "" }, new String[] { ""
-				+ register });
+		super("TWO_PHASE_STORAGE", new Parameter[] { new BooleanParameter(
+				"REGISTER", register) });
 		this.register = register;
 	}
 

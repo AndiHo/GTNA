@@ -36,71 +36,23 @@
 package gtna.util;
 
 import gtna.data.Series;
-import gtna.data.Singles;
-import gtna.data.Value;
+import gtna.data.Single;
 import gtna.graph.Edge;
 import gtna.graph.Node;
 import gtna.networks.Network;
-import gtna.plot.PlotData;
 import gtna.routing.RoutingAlgorithm;
+import gtna.util.parameter.Parameter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.Vector;
 
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.distribution.NormalDistributionImpl;
-import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
-
 public class Util {
-
-	// ///////////////////////
-	// STATISTICS
-	// ///////////////////////
-
-	public static final boolean isBiasCorrected = false;
-
-	public static double getStandardDeviation(double[] values) {
-		StandardDeviation sd = new StandardDeviation(isBiasCorrected);
-		double value = sd.evaluate(values);
-		if (!Double.isNaN(value)) {
-			return value;
-		}
-		int counter = 0;
-		for (int i = 0; i < values.length; i++) {
-			if (!Double.isNaN(values[i])) {
-				counter++;
-			}
-		}
-		double[] newValues = new double[counter];
-		int index = 0;
-		for (int i = 0; i < values.length; i++) {
-			if (!Double.isNaN(values[i])) {
-				newValues[index++] = values[i];
-			}
-		}
-		double newValue = sd.evaluate(newValues);
-		return newValue;
-	}
-
-	public static double[] getConfidenceInterval(double mean,
-			double standardDeviation, int n, double alpha) {
-		double standardError = standardDeviation / Math.sqrt(n);
-		NormalDistributionImpl nd = new NormalDistributionImpl();
-		double z;
-		try {
-			z = nd.inverseCumulativeProbability((double) 1 - (double) alpha
-					/ (double) 2);
-			double from = mean - z * standardError;
-			double to = mean + z * standardError;
-			return new double[] { from, to };
-		} catch (MathException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	// ///////////////////////
 	// toFolderString
@@ -386,22 +338,6 @@ public class Util {
 		return array;
 	}
 
-	public static PlotData[] toPlotDataArray(ArrayList<PlotData> list) {
-		PlotData[] array = new PlotData[list.size()];
-		for (int i = 0; i < list.size(); i++) {
-			array[i] = list.get(i);
-		}
-		return array;
-	}
-
-	public static Singles[] toSinglesArray(ArrayList<Singles> list) {
-		Singles[] array = new Singles[list.size()];
-		for (int i = 0; i < list.size(); i++) {
-			array[i] = list.get(i);
-		}
-		return array;
-	}
-
 	public static Edge[] toEdgeArray(ArrayList<Edge> list) {
 		Edge[] array = new Edge[list.size()];
 		for (int i = 0; i < list.size(); i++) {
@@ -418,8 +354,8 @@ public class Util {
 		return array;
 	}
 
-	public static Value[] toValueArray(ArrayList<Value> list) {
-		Value[] array = new Value[list.size()];
+	public static Single[] toValueArray(ArrayList<Single> list) {
+		Single[] array = new Single[list.size()];
 		for (int i = 0; i < list.size(); i++) {
 			array[i] = list.get(i);
 		}
@@ -694,13 +630,13 @@ public class Util {
 	 *         the elements of arr1 and arr2.
 	 * @author Philipp Neubrand
 	 */
-	public static String[] mergeArrays(String[] arr1, String[] arr2) {
+	public static Parameter[] mergeArrays(Parameter[] arr1, Parameter[] arr2) {
 		if (arr2 == null)
 			return arr1;
 		if (arr1 == null)
 			return arr2;
 
-		String[] ret = new String[arr1.length + arr2.length];
+		Parameter[] ret = new Parameter[arr1.length + arr2.length];
 		for (int i = 0; i < arr1.length; i++)
 			ret[i] = arr1[i];
 		for (int i = 0; i < arr2.length; i++)
@@ -708,23 +644,46 @@ public class Util {
 
 		return ret;
 	}
+	
 
 	/**
 	 * Prefixes all values in the array with the given prefix.
 	 * 
 	 * @param prefix
 	 *            The prefix to be attached to all values in the array.
-	 * @param arr
+	 * @param parameters
 	 *            The array to which the prefix is to be attached.
 	 * @return The same String array with prefix attached to all the values.
 	 * @author Philipp Neubrand
 	 */
-	public static String[] addPrefix(String prefix, String[] arr) {
-		for (int i = 0; i < arr.length; i++) {
-			arr[i] = prefix + arr[i];
+	public static Parameter[] addPrefix(String prefix, Parameter[] parameters) {
+		for (int i = 0; i < parameters.length; i++) {
+			parameters[i].setKey(prefix+parameters[i].getKey());
 		}
 
-		return arr;
+		return parameters;
+	}
+
+	/**
+	 * Maps labels to communities. Labels are mapped in ascending order,
+	 * communities are indexed from 0 to N, where N is the number of
+	 * communities.
+	 * 
+	 * @param labels
+	 *            array of labels
+	 * @return mapping of labels to communities
+	 */
+	public static HashMap<Integer, Integer> mapLabelsToCommunities(int[] labels) {
+		SortedSet<Integer> labelSet = new TreeSet<Integer>();
+		for (int label : labels) {
+			labelSet.add(label);
+		}
+		HashMap<Integer, Integer> labelCommunityMapping = new HashMap<Integer, Integer>();
+		int communityIndex = 0;
+		for (int label : labelSet) {
+			labelCommunityMapping.put(label, communityIndex++);
+		}
+		return labelCommunityMapping;
 	}
 
 	// ///////////////////////

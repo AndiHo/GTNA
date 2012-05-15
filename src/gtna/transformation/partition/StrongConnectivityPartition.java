@@ -38,7 +38,6 @@ package gtna.transformation.partition;
 import gtna.graph.Graph;
 import gtna.graph.partition.Partition;
 import gtna.transformation.Transformation;
-import gtna.transformation.TransformationImpl;
 import gtna.util.Util;
 
 import java.util.ArrayList;
@@ -49,17 +48,25 @@ import java.util.Stack;
  *         components of the given graph http://en.wikipedia.org/wiki/Tarjan
  *         's_strongly_connected_components_algorithm
  */
-public class StrongConnectivityPartition extends TransformationImpl implements
-		Transformation {
+public class StrongConnectivityPartition extends Transformation {
 
 	public StrongConnectivityPartition() {
-		super("STRONG_CONNECTIVITY_PARTITION", new String[] {}, new String[] {});
+		super("STRONG_CONNECTIVITY_PARTITION");
 	}
 
 	private int index;
 
 	@Override
 	public Graph transform(Graph g) {
+		Partition p = this.getStrongPartition(g);
+		
+		g.addProperty(g.getNextKey("STRONG_CONNECTIVITY_PARTITION"), p);
+		g.addProperty(g.getNextKey("PARTITION"), p);
+		
+		return g;
+	}
+
+	public Partition getStrongPartition(Graph g) {
 		ArrayList<ArrayList<Integer>> components = new ArrayList<ArrayList<Integer>>();
 		int[] index = Util.initIntArray(g.getNodes().length, -1);
 		int[] lowlink = new int[g.getNodes().length];
@@ -72,11 +79,7 @@ public class StrongConnectivityPartition extends TransformationImpl implements
 			}
 		}
 
-		Partition p = new Partition(components);
-		g.addProperty(g.getNextKey("STRONG_CONNECTIVITY_PARTITION"), p);
-		g.addProperty(g.getNextKey("PARTITION"), p);
-
-		return g;
+		return new Partition(components);
 	}
 
 	private void strongConnect(int v, Graph g, int[] index, int[] lowlink,

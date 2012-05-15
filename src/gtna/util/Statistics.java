@@ -39,8 +39,6 @@ package gtna.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.apache.commons.math.stat.descriptive.moment.Variance;
-
 /**
  * @author "Benjamin Schiller"
  * 
@@ -61,9 +59,7 @@ public class Statistics {
 				pos++;
 				counter++;
 			}
-			res
-					.add(new double[] { a,
-							(double) counter / (double) values.length });
+			res.add(new double[] { a, (double) counter / (double) values.length });
 		}
 		double[][] pd = new double[res.size()][];
 		for (int i = 0; i < res.size(); i++) {
@@ -90,11 +86,6 @@ public class Statistics {
 		return edf;
 	}
 
-	public static double variance(double[] values, double avg) {
-		Variance v = new Variance();
-		return v.evaluate(values, avg);
-	}
-
 	public static double[][] binning(double[] values, double start, double end,
 			double step) {
 		Arrays.sort(values);
@@ -115,5 +106,40 @@ public class Statistics {
 			binned[i] = Util.toDoubleArray(list);
 		}
 		return binned;
+	}
+
+	public static double[][] binnedDistribution(double[] values, double start,
+			double end, int bins) {
+		double step = (end - start) / (double) bins;
+		double[][] binned = Statistics.binning(values, start, end, step);
+
+		double[][] distribution = new double[bins][2];
+		for (int i = 0; i < bins; i++) {
+			distribution[i][0] = (double) i * step;
+			distribution[i][1] = binned[i].length;
+		}
+		ArrayUtils.divide(distribution, 1, values.length);
+
+		return distribution;
+	}
+
+	public static double[][] binnedCdf(double[] values, double start,
+			double end, int bins) {
+		return Statistics.binnedCdf(Statistics.binnedDistribution(values, start, end,
+				bins));
+	}
+
+	public static double[][] binnedCdf(double[][] distribution) {
+		double[][] cdf = new double[distribution.length][2];
+
+		cdf[0][0] = distribution[0][0];
+		cdf[0][1] = distribution[0][1];
+
+		for (int i = 1; i < distribution.length; i++) {
+			cdf[i][0] = distribution[i][0];
+			cdf[i][1] = distribution[i][1] + cdf[i - 1][1];
+		}
+
+		return cdf;
 	}
 }

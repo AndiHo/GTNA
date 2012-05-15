@@ -36,6 +36,9 @@
 package gtna.transformation;
 
 import gtna.graph.Graph;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
+import gtna.util.parameter.ParameterList;
 
 /**
  * Interface that must be implemented by all graph transformations.
@@ -43,7 +46,49 @@ import gtna.graph.Graph;
  * @author benni
  * 
  */
-public interface Transformation {
+public abstract class Transformation extends ParameterList {
+	private int times;
+
+	public Transformation(String key) {
+		this(key, 1);
+	}
+
+	public Transformation(String key, int times) {
+		this(key, null, times);
+	}
+
+	public Transformation(String key, Parameter[] parameters) {
+		this(key, parameters, 1);
+	}
+
+	public Transformation(String key, Parameter[] parameters, int times) {
+		super(key, Transformation.add(parameters, times));
+		this.times = times;
+	}
+
+	private static Parameter[] add(Parameter[] p1, int times) {
+		if (p1 == null) {
+			p1 = new Parameter[0];
+		}
+		if (times == 1) {
+			return p1;
+		}
+		Parameter[] p2 = new Parameter[p1.length + 1];
+		p2[0] = new IntParameter("TIMES", times);
+		for (int i = 0; i < p1.length; i++) {
+			p2[i + 1] = p1[i];
+		}
+		return p2;
+	}
+
+	/**
+	 * 
+	 * @return number of times this transformation should be executed
+	 */
+	public int getTimes() {
+		return this.times;
+	}
+
 	/**
 	 * Transforms the given graph and returns the transformed version. Note that
 	 * in some cases, the given graph might simply be transformed and returned.
@@ -55,7 +100,7 @@ public interface Transformation {
 	 * @return transformed graph (can be a transformed version of the old object
 	 *         of a new object)
 	 */
-	public Graph transform(Graph g);
+	public abstract Graph transform(Graph g);
 
 	/**
 	 * Checks if the given graph is applicable to the transformation. E.g., to
@@ -66,68 +111,5 @@ public interface Transformation {
 	 * @return true of the graph is applicable for this transformation, false
 	 *         otherwise
 	 */
-	public boolean applicable(Graph g);
-
-	/**
-	 * 
-	 * @return key of the transformation (used in the configuration)
-	 */
-	public String key();
-
-	/**
-	 * 
-	 * @return name of the transformation
-	 */
-	public String name();
-
-	/**
-	 * 
-	 * @return long version of the name
-	 */
-	public String nameLong();
-
-	/**
-	 * 
-	 * @return short version of the name
-	 */
-	public String nameShort();
-
-	/**
-	 * 
-	 * @return part of the folder name representing the transformation
-	 */
-	public String folder();
-
-	/**
-	 * 
-	 * @return configuration keys of the transformation's configuration
-	 *         parameters
-	 */
-	public String[] configKeys();
-
-	/**
-	 * 
-	 * @return configuration parameters of the transformation's instance
-	 */
-	public String[] configValues();
-
-	/**
-	 * 
-	 * @param t
-	 *            transformation to compare to
-	 * @return first configuration parameter (actual value) that differs between
-	 *         the two compared transformations
-	 */
-	public String compareValue(Transformation t);
-
-	/**
-	 * 
-	 * @param t
-	 *            transformation to compare to
-	 * @param key
-	 *            representation of the name
-	 * @return name / type of the first configuration parameter that differs
-	 *         between the two compared transformations
-	 */
-	public String compareName(Transformation t, String key);
+	public abstract boolean applicable(Graph g);
 }

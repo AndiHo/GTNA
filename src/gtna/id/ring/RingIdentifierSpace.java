@@ -37,6 +37,7 @@ package gtna.id.ring;
 
 import gtna.graph.Graph;
 import gtna.id.DIdentifierSpace;
+import gtna.id.DPartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
 import gtna.io.Filereader;
@@ -57,12 +58,19 @@ public class RingIdentifierSpace implements DIdentifierSpace {
 	protected boolean wrapAround;
 
 	protected double maxDistance;
+	
+	public static enum Distance{
+		RING, CLOCKWISE, SIGNED
+	}
+	
+	protected Distance distance;
 
 	public RingIdentifierSpace() {
 		this.partitions = new RingPartition[] {};
 		this.modulus = Double.MAX_VALUE;
 		this.wrapAround = false;
 		this.maxDistance = Double.MAX_VALUE;
+		this.distance = Distance.RING;
 	}
 
 	public RingIdentifierSpace(RingPartition[] partitions, double modulus,
@@ -71,10 +79,20 @@ public class RingIdentifierSpace implements DIdentifierSpace {
 		this.modulus = modulus;
 		this.wrapAround = wrapAround;
 		this.maxDistance = this.wrapAround ? this.modulus / 2.0 : this.modulus;
+		this.distance = Distance.RING;
+	}
+	
+	public RingIdentifierSpace(RingPartition[] partitions, double modulus,
+			boolean wrapAround, Distance distance) {
+		this.partitions = partitions;
+		this.modulus = modulus;
+		this.wrapAround = wrapAround;
+		this.maxDistance = this.wrapAround ? this.modulus / 2.0 : this.modulus;
+		this.distance = distance;
 	}
 
 	@Override
-	public Partition<Double>[] getPartitions() {
+	public DPartition[] getPartitions() {
 		return this.partitions;
 	}
 
@@ -176,5 +194,4 @@ public class RingIdentifierSpace implements DIdentifierSpace {
 	public boolean isWrapAround() {
 		return this.wrapAround;
 	}
-
 }

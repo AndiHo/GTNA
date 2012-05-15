@@ -43,7 +43,8 @@ import gtna.id.DPartition;
 import gtna.routing.Route;
 import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
-import gtna.routing.RoutingAlgorithmImpl;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +54,7 @@ import java.util.Random;
  * @author benni
  * 
  */
-public class GreedyBacktracking extends RoutingAlgorithmImpl implements
-		RoutingAlgorithm {
+public class GreedyBacktracking extends RoutingAlgorithm {
 	private DIdentifierSpace idSpace;
 
 	private DPartition[] p;
@@ -62,13 +62,13 @@ public class GreedyBacktracking extends RoutingAlgorithmImpl implements
 	private int ttl;
 
 	public GreedyBacktracking() {
-		super("GREEDY_BACKTRACKING", new String[] {}, new String[] {});
+		super("GREEDY_BACKTRACKING");
 		this.ttl = Integer.MAX_VALUE;
 	}
 
 	public GreedyBacktracking(int ttl) {
-		super("GREEDY_BACKTRACKING", new String[] { "TTL" }, new String[] { ""
-				+ ttl });
+		super("GREEDY_BACKTRACKING", new Parameter[] { new IntParameter("TTL",
+				ttl) });
 		this.ttl = ttl;
 	}
 
@@ -82,8 +82,9 @@ public class GreedyBacktracking extends RoutingAlgorithmImpl implements
 				graph.getNodes(), new HashMap<Integer, Integer>());
 	}
 
-	private Route route(ArrayList<Integer> route, int current, DIdentifier target,
-			Random rand, Node[] nodes, HashMap<Integer, Integer> from) {
+	private Route route(ArrayList<Integer> route, int current,
+			DIdentifier target, Random rand, Node[] nodes,
+			HashMap<Integer, Integer> from) {
 		route.add(current);
 		if (this.idSpace.getPartitions()[current].contains(target)) {
 			return new RouteImpl(route, true);

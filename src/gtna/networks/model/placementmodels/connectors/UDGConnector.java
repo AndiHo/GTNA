@@ -34,9 +34,12 @@
 package gtna.networks.model.placementmodels.connectors;
 
 import gtna.graph.Edges;
+import gtna.graph.Graph;
 import gtna.graph.Node;
 import gtna.id.plane.PlaneIdentifierSpaceSimple;
 import gtna.networks.model.placementmodels.NodeConnectorImpl;
+import gtna.util.parameter.DoubleParameter;
+import gtna.util.parameter.Parameter;
 
 /**
  * Connects nodes based on their distance. If the distance is below
@@ -59,8 +62,7 @@ public class UDGConnector extends NodeConnectorImpl {
 	public UDGConnector(double range) {
 		this.range = range;
 		setKey("UDG");
-		setAdditionalConfigKeys(new String[] { "RANGE" });
-		setAdditionalConfigValues(new String[] { Double.toString(range) });
+		setAdditionalConfigParameters(new Parameter[] { new DoubleParameter("RANGE", range) });
 	}
 
 	/**
@@ -68,7 +70,7 @@ public class UDGConnector extends NodeConnectorImpl {
 	 * <code>range</code> the nodes are connect, else they are not.
 	 */
 	@Override
-	public Edges connect(Node[] nodes, PlaneIdentifierSpaceSimple ids) {
+	public Edges connect(Node[] nodes, PlaneIdentifierSpaceSimple ids, Graph g) {
 
 		Edges edges = new Edges(nodes, nodes.length * (nodes.length - 1));
 
@@ -82,6 +84,8 @@ public class UDGConnector extends NodeConnectorImpl {
 				}
 			}
 		}
+		
+		g.addProperty("RANGE_0", new RangeProperty(range, nodes.length));
 
 		edges.fill();
 

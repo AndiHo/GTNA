@@ -35,21 +35,23 @@
  */
 package gtna.transformation.gd;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
-
 import gtna.graph.Edge;
 import gtna.graph.Graph;
 import gtna.graph.Node;
 import gtna.id.ring.RingIdentifier;
 import gtna.id.ring.RingIdentifierSpace;
 import gtna.id.ring.RingPartition;
+import gtna.metrics.edges.EdgeCrossings;
 import gtna.util.Util;
+import gtna.util.parameter.Parameter;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * @author Nico
- *
+ * 
  */
 public abstract class CircularAbstract extends GraphDrawingAbstract {
 
@@ -58,14 +60,14 @@ public abstract class CircularAbstract extends GraphDrawingAbstract {
 	protected int realities;
 	protected double modulus;
 	protected Boolean wrapAround;
-	ArrayList<String> handledEdges;
-	
-	public CircularAbstract(String key, String[] configKeys, String[] configValues) {
-		super(key, configKeys, configValues);
+	HashSet<String> handledEdges;
+	EdgeCrossings edgeCrossings;
+
+	public CircularAbstract(String key, Parameter[] parameters) {
+		super(key, parameters);
 	}
 
-	protected void initIDSpace( Graph g ) {
-		Random rand = new Random();
+	protected void initIDSpace(Graph g) {
 		for (int r = 0; r < this.realities; r++) {
 			partitions = new RingPartition[g.getNodes().length];
 			idSpace = new RingIdentifierSpace(partitions, this.modulus,
@@ -81,111 +83,123 @@ public abstract class CircularAbstract extends GraphDrawingAbstract {
 			}
 			Util.randomize(partitions, rand);
 		}
+		edgeCrossings = new EdgeCrossings();
 	}
 
-	protected void writeIDSpace ( Graph g ) {
+	protected void writeIDSpace(Graph g) {
 		g.addProperty(g.getNextKey("ID_SPACE"), idSpace);
 	}
-	
-	protected int countAllCrossings(Graph g) {
-		int numCross = 0;
-		Edge[] edgeList = g.generateEdges();
-		
-		handledEdges = new ArrayList<String>();
-		for ( Edge e: edgeList ) {
-			numCross += countCrossings(e, edgeList);
+
+	protected void reduceCrossingsBySwapping(Graph g) {
+		Node currentNode, predecessor;
+		Integer currentNodeID, predecessorID;
+		int currentCrossings, swappedCrossings;
+		long startTime = System.currentTimeMillis();
+
+		/*
+		 * Add all nodes to the todolist
+		 */
+		LinkedList<Integer> todolist = new LinkedList<Integer>();
+		for (Node n : g.getNodes()) {
+			todolist.add(n.getIndex());
 		}
-		return numCross;
-	}
-	
-	protected int countCrossings (Graph g, Node n) {
-		Edge[] nodeEdges = n.getAllEdges();
-		Edge[] graphEdges = g.generateEdges();
-		handledEdges = new ArrayList<String>();
-		int numCross = 0;
-		for ( Edge x: nodeEdges ) {
-			for ( Edge y: graphEdges ) {
-				if ( hasCrossing(x, y) ) numCross++;
+
+		int countLoop = 0;
+		int lastCounter = todolist.size();
+		while ((currentNodeID = todolist.poll()) != null) {
+			countLoop++;
+			if (countLoop % 2000 == 0) {
+				// System.out.println("In iteration " + countLoop +
+				// "; todoList still holds " + todolist.size()
+				// + " elements (prior: " + lastCounter + ", for " +
+				// g.getNodes().length + " nodes)");
+				// lastCounter = todolist.size();
+			}
+			currentNode = g.getNode(currentNodeID);
+
+			/*
+			 * Special case handling: current node has a degree of zero
+			 */
+			if (currentNode.getDegree() == 0) {
+				continue;
+			}
+			if (currentNode.getDegree() <= 2) {
+				Edge[] edges = currentNode.getEdges();
+				Edge firstEdge = edges[0];
+				int otherEnd = firstEdge.getDst();
+				if (firstEdge.getDst() == currentNode.getIndex()) {
+					otherEnd = firstEdge.getSrc();
+				}
+				predecessor = g.getNode(getPredecessor(otherEnd));
+				swapPositions(currentNode.getIndex(), predecessor.getIndex());
+				continue;
+			}
+
+			predecessorID = getPredecessor(currentNode.getIndex());
+			predecessor = g.getNode(predecessorID);
+			currentCrossings = edgeCrossings.calculateCrossings(currentNode,
+					predecessor, idSpace);
+
+			if (currentCrossings == 0) {
+				/*
+				 * If there are no actual crossings caused by a node and its
+				 * predecessor, there is nothing to improve
+				 */
+				continue;
+			}
+			swapPositions(currentNodeID, predecessorID);
+			swappedCrossings = edgeCrossings.calculateCrossings(currentNode,
+					predecessor, idSpace);
+			if (swappedCrossings < currentCrossings) {
+				/*
+				 * Leave it that way, boy! But: there might be some more success
+				 * with that node...
+				 * 
+				 * Remark: a prior implementation also checked whether the
+				 * swapping increased the number of crossings for the
+				 * predecessor. This took a lot more time, but did not lead to
+				 * better result. A full check for the predecessor absorbs this
+				 * - because the predecessor might also have a predecessor
+				 * sharing a lot of edge crossings...
+				 */
+				if (!todolist.contains(currentNodeID))
+					todolist.add(currentNodeID);
+				if (!todolist.contains(predecessorID))
+					todolist.add(predecessorID);
+			} else {
+				swapPositions(currentNodeID, predecessorID);
 			}
 		}
-		return numCross;
+		long endTime = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		// System.out.println("Did " + countLoop + " loops in " + totalTime +
+		// " msec");
 	}
 
-	protected int countCrossings(Edge e, Edge[] list) {
-		int numCross = 0;
-		for ( Edge f: list ) {
-			if ( hasCrossing(e, f) ) numCross++;
-		}
-		return numCross;
-	}
-
-	private Boolean hasCrossing(Edge x, Edge y) {
-			/*
-			 * There cannot be a crossing between only one edge
-			 */
-		if ( x.equals(y) ) return false;
-		
-		double xStart = Math.min ( getPosition( x.getSrc() ), getPosition( x.getDst() ) );
-		double xEnd = Math.max ( getPosition( x.getSrc() ), getPosition( x.getDst() ) );
-		String xString = xStart + " -> " +xEnd;
-		double yStart = Math.min ( getPosition( y.getSrc() ), getPosition( y.getDst() ) );
-		double yEnd = Math.max ( getPosition( y.getSrc() ), getPosition( y.getDst() ) );
-		String yString = yStart + " -> " + yEnd;
-		String edgeString;
-		if ( xStart < yStart ) edgeString = xString + " and " + yString;
-		else edgeString = yString + " and " + xString;
-		
-			/*
-			 * Have we already handled this edge?
-			 */
-		if ( handledEdges.contains(edgeString) ) {
-			return false;
-		}
-		handledEdges.add(edgeString);
-		
-		if ( ( xStart < yStart && xEnd > yEnd ) ||
-			 ( yStart < xStart && yEnd > xEnd ) ||
-			 ( yStart > xEnd || xStart > yEnd ) ||
-			 ( yStart == xEnd || xStart == yEnd || xStart == yStart || xEnd == yEnd )
-				) {
-//			System.out.println( "No crossing between " + edgeString );
-			return false;
-		}
-		if ( ( xStart < yStart && xEnd < yEnd ) ||
-				( xStart > yStart && xEnd > yEnd )
-			)	{
-//			System.out.println("Got a crossing between " + edgeString);
-			return true;
-		}
-		
-		System.err.println( "Unknown case " + edgeString );
-		return false;
-	}
-
-	protected double getPosition(int i) {
-		return partitions[i].getStart().getPosition();
-	}
-	
 	protected int getPredecessor(int i) {
 		double predEnd = partitions[i].getStart().getPosition();
-		
+
 		for (int j = 0; j < partitions.length; j++) {
-			if ( partitions[j].getEnd().getPosition() == predEnd ) return j;
+			if (partitions[j].getEnd().getPosition() == predEnd)
+				return j;
 		}
-		
-		throw new RuntimeException("There's a hole in the RingIdentifierSpace!");
+
+		throw new GDTransformationException(
+				"There's a hole in the RingIdentifierSpace!");
 	}
-	
+
 	protected int getSuccessor(int i) {
 		double succStart = partitions[i].getEnd().getPosition();
-		
+
 		for (int j = 0; j < partitions.length; j++) {
-			if ( partitions[j].getStart().getPosition() == succStart ) return j;
+			if (partitions[j].getStart().getPosition() == succStart)
+				return j;
 		}
-		
-		throw new RuntimeException("There's a hole in the RingIdentifierSpace!");
+
+		throw new GDTransformationException(
+				"There's a hole in the RingIdentifierSpace!");
 	}
-	
+
 	protected void swapPositions(int i, int j) {
 		RingPartition temp = partitions[i];
 		partitions[i] = partitions[j];

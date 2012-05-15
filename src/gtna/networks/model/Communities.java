@@ -39,15 +39,19 @@ import gtna.graph.Edges;
 import gtna.graph.Graph;
 import gtna.graph.Node;
 import gtna.networks.Network;
-import gtna.networks.NetworkImpl;
 import gtna.routing.RoutingAlgorithm;
 import gtna.transformation.Transformation;
 import gtna.util.Util;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.DoubleArrayParameter;
+import gtna.util.parameter.DoubleParameter;
+import gtna.util.parameter.IntArrayParameter;
+import gtna.util.parameter.Parameter;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Communities extends NetworkImpl implements Network {
+public class Communities extends Network {
 	private int[] sizes;
 
 	private double[] avgInLinks;
@@ -57,12 +61,11 @@ public class Communities extends NetworkImpl implements Network {
 	private boolean bidirectional;
 
 	public Communities(int n, double avgCommunitySize, double avgInLinks,
-			double avgOutLinks, boolean bidirectional, RoutingAlgorithm r,
-			Transformation[] t) {
-		super("COMMUNITIES", n, new String[] { "AVG_COMMUNITY_SIZE",
-				"AVG_IN_LINKS", "AVG_OUT_LINKS" }, new String[] {
-				"" + avgCommunitySize, "" + avgInLinks, "" + avgOutLinks }, r,
-				t);
+			double avgOutLinks, boolean bidirectional, Transformation[] t) {
+		super("COMMUNITIES_NETWORK", n, new Parameter[] {
+				new DoubleParameter("AVG_IN_LINKS", avgCommunitySize),
+				new DoubleParameter("AVG_IN_LINKS", avgInLinks),
+				new DoubleParameter("AVG_OUT_LINKS", avgOutLinks) }, t);
 		Random rand = new Random(System.currentTimeMillis());
 		this.bidirectional = bidirectional;
 		if (n <= avgCommunitySize) {
@@ -112,11 +115,11 @@ public class Communities extends NetworkImpl implements Network {
 
 	public Communities(int[] sizes, double[] avgInLinks, double[] avgOutLinks,
 			boolean bidirectional, RoutingAlgorithm r, Transformation[] t) {
-		super("COMMUNITIES_NETWORK", Util.sum(sizes), new String[] {
-				"AVG_COMMUNITY_SIZE", "AVG_IN_LINKS", "AVG_OUT_LINKS" },
-				new String[] { Util.toFolderString(sizes),
-						Util.toFolderString(avgInLinks),
-						Util.toFolderString(avgOutLinks) }, r, t);
+		super("COMMUNITIES_NETWORK", Util.sum(sizes), new Parameter[] {
+				new IntArrayParameter("AVG_COMMUNITY_SIZE", sizes),
+				new DoubleArrayParameter("AVG_IN_LINKS", avgInLinks),
+				new DoubleArrayParameter("AVG_OUT_LINKS", avgOutLinks),
+				new BooleanParameter("BIDIRECTIONAL", bidirectional) }, t);
 		this.sizes = sizes;
 		this.avgInLinks = avgInLinks;
 		this.avgOutLinks = avgOutLinks;
@@ -124,8 +127,8 @@ public class Communities extends NetworkImpl implements Network {
 	}
 
 	public Graph generate() {
-		Graph graph = new Graph(this.description());
-		Node[] nodes = Node.init(this.nodes(), graph);
+		Graph graph = new Graph(this.getDescription());
+		Node[] nodes = Node.init(this.getNodes(), graph);
 		Edges edges = new Edges(nodes, 0);
 		Random rand = new Random(System.currentTimeMillis());
 		Node[][] communities = new Node[this.sizes.length][];
@@ -157,7 +160,7 @@ public class Communities extends NetworkImpl implements Network {
 		// create external links
 		for (int i = 0; i < communities.length; i++) {
 			double prob = this.avgOutLinks[i]
-					/ (double) (this.nodes() - communities[i].length);
+					/ (double) (this.getNodes() - communities[i].length);
 			int start = communities[i][0].getIndex();
 			int end = communities[i][communities[i].length - 1].getIndex();
 			for (int j = 0; j < communities[i].length; j++) {

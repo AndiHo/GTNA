@@ -45,7 +45,8 @@ import gtna.id.Partition;
 import gtna.routing.Route;
 import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
-import gtna.routing.RoutingAlgorithmImpl;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -56,8 +57,7 @@ import java.util.Random;
  * @author benni
  * 
  */
-public class LookaheadSimple extends RoutingAlgorithmImpl implements
-		RoutingAlgorithm {
+public class LookaheadSimple extends RoutingAlgorithm {
 	private int ttl;
 
 	@SuppressWarnings("rawtypes")
@@ -67,8 +67,8 @@ public class LookaheadSimple extends RoutingAlgorithmImpl implements
 	protected Partition[] p;
 
 	public LookaheadSimple(int ttl) {
-		super("LOOKAHEAD_SIMPLE", new String[] { "TTL" }, new String[] { ""
-				+ ttl });
+		super("LOOKAHEAD_SIMPLE",
+				new Parameter[] { new IntParameter("TTL", ttl) });
 		this.ttl = ttl;
 	}
 
