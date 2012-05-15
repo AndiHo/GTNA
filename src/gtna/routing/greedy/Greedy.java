@@ -38,6 +38,9 @@ package gtna.routing.greedy;
 import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
 import gtna.graph.Node;
+import gtna.id.APFIdentifier;
+import gtna.id.APFIdentifierSpace;
+import gtna.id.APFPartition;
 import gtna.id.BIIdentifier;
 import gtna.id.BIIdentifierSpace;
 import gtna.id.BIPartition;
@@ -53,18 +56,22 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.apfloat.Apfloat;
+
 /**
  * @author benni
  * 
  */
 public class Greedy extends RoutingAlgorithmImpl implements RoutingAlgorithm {
+	
 	private DIdentifierSpace idSpaceD;
-
 	private DPartition[] pD;
 
 	private BIIdentifierSpace idSpaceBI;
-
 	private BIPartition[] pBI;
+	
+	private APFIdentifierSpace idSpaceAPF;
+	private APFPartition[] pAPF;
 
 	private int ttl;
 
@@ -84,6 +91,8 @@ public class Greedy extends RoutingAlgorithmImpl implements RoutingAlgorithm {
 			return this.routeToRandomTargetBI(graph, start, rand);
 		} else if (this.idSpaceD != null) {
 			return this.routeToRandomTargetD(graph, start, rand);
+		} else if (this.idSpaceAPF != null) {
+			return this.routeToRandomTargetAPF(graph, start, rand);
 		} else {
 			return null;
 		}
@@ -160,32 +169,70 @@ public class Greedy extends RoutingAlgorithmImpl implements RoutingAlgorithm {
 		return this.routeD(route, minNode, target, rand, nodes);
 	}
 
+	private Route routeToRandomTargetAPF(Graph graph, int start, Random rand) {
+		APFIdentifier target = (APFIdentifier) this.idSpaceAPF.randomID(rand);
+		while (this.pAPF[start].contains(target)) {
+			target = (APFIdentifier) this.idSpaceAPF.randomID(rand);
+		}
+		return this.routeAPF(new ArrayList<Integer>(), start, target, rand,
+				graph.getNodes());
+	}
+
+	private Route routeAPF(ArrayList<Integer> route, int current,
+			APFIdentifier target, Random rand, Node[] nodes) {
+		route.add(current);
+		if (this.idSpaceAPF.getPartitions()[current].contains(target)) {
+			return new RouteImpl(route, true);
+		}
+		if (route.size() > this.ttl) {
+			return new RouteImpl(route, false);
+		}
+		Apfloat currentDist = this.idSpaceAPF.getPartitions()[current]
+				.distance(target);
+		// Apfloat minDist = this.idSpaceAPF.getMaxDistance();
+		Apfloat minDist = currentDist;
+		int minNode = -1;
+		for (int out : nodes[current].getOutgoingEdges()) {
+			Apfloat dist = this.pAPF[out].distance(target);
+			// lhs.compareTo(rhs) returns -1 iff lhs < rhs
+			//if (dist.compareTo(minDist) == -1 && dist.compareTo(currentDist) == -1) {
+			if (dist.compareTo(minDist) == -1) {
+				minDist = dist;
+				minNode = out;
+			}
+		}
+		if (minNode == -1) {
+			return new RouteImpl(route, false);
+		}
+		return this.routeAPF(route, minNode, target, rand, nodes);
+	}
+	
+	
 	@Override
 	public boolean applicable(Graph graph) {
 		return graph.hasProperty("ID_SPACE_0")
 				&& (graph.getProperty("ID_SPACE_0") instanceof DIdentifierSpace || graph
-						.getProperty("ID_SPACE_0") instanceof BIIdentifierSpace);
+						.getProperty("ID_SPACE_0") instanceof BIIdentifierSpace || graph.getProperty("ID_SPACE_0") instanceof APFIdentifierSpace);
 	}
 
 	@Override
 	public void preprocess(Graph graph) {
 		GraphProperty p = graph.getProperty("ID_SPACE_0");
+		this.idSpaceD = null;
+		this.pD = null;
+		this.idSpaceBI = null;
+		this.pBI = null;
+		this.idSpaceAPF = null;
+		this.pAPF = null;
 		if (p instanceof DIdentifierSpace) {
 			this.idSpaceD = (DIdentifierSpace) p;
 			this.pD = (DPartition[]) this.idSpaceD.getPartitions();
-			this.idSpaceBI = null;
-			this.pBI = null;
 		} else if (p instanceof BIIdentifierSpace) {
-			this.idSpaceD = null;
-			this.pD = null;
 			this.idSpaceBI = (BIIdentifierSpace) p;
 			this.pBI = (BIPartition[]) this.idSpaceBI.getPartitions();
-		} else {
-			this.idSpaceD = null;
-			this.pD = null;
-			this.idSpaceBI = null;
-			this.pBI = null;
-		}
+		} else if (p instanceof APFIdentifierSpace) {
+			this.idSpaceAPF = (APFIdentifierSpace) p;
+			this.pAPF = (APFPartition[]) this.idSpaceAPF.getPartitions();
+		} 	
 	}
-
 }

@@ -183,8 +183,10 @@ public class Config {
 		String[] names = Config.get("METRICS").split(
 				Config.get("CONFIG_LIST_SEPARATOR"));
 		Metric[] metrics = new Metric[names.length];
+		
 		for (int i = 0; i < names.length; i++) {
 			try {
+				System.out.println(names[i]);
 				metrics[i] = (Metric) ClassLoader.getSystemClassLoader()
 						.loadClass(Config.get(names[i].trim() + "_CLASS"))
 						.newInstance();

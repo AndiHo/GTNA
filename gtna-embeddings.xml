@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project GTNA with libraries in sub-folder">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings.jar">
+            <manifest>
+                <attribute name="Main-Class" value="gtna.GTNAEmbeddings"/>
+                <attribute name="Class-Path" value=". gtna-embeddings_lib/commons-math-2.0.jar gtna-embeddings_lib/log4j-1.2.16.jar gtna-embeddings_lib/apfloat.jar gtna-embeddings_lib/samples.jar"/>
+            </manifest>
+            <fileset dir="/data/p2p-arbeit/Forschung/GTNA/bin"/>
+        </jar>
+    	<zip destfile="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings-src.zip">
+    	    <zipfileset dir="/data/p2p-arbeit/Forschung/GTNA/src" prefix="src"/>
+    	</zip>
+    	<zip destfile="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings-config.zip"	>
+    		<zipfileset dir="/data/p2p-arbeit/Forschung/GTNA/config" prefix="config"/>
+    	</zip>
+        <delete dir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+        <mkdir dir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/commons-math-2.0.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/log4j-1.2.16.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/apfloat.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/samples.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
+    </target>
+</project>
