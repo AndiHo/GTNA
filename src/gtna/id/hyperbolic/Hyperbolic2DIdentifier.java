@@ -48,7 +48,7 @@ import gtna.id.Identifier;
  * @author Andreas Höfer
  *
  */
-public class Hyperbolic2DIdentifier implements APFIdentifier, Comparable<Hyperbolic2DIdentifier>{
+public class Hyperbolic2DIdentifier implements APFIdentifier{
 
 	private Apcomplex pos;
 
@@ -60,14 +60,6 @@ public class Hyperbolic2DIdentifier implements APFIdentifier, Comparable<Hyperbo
 		this.pos = new Apcomplex(pos);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(Hyperbolic2DIdentifier arg0) {
-		// TODO: Do we need this method?
-		return 0;
-	}
 
 	/* 
 	 * Implement hyperbolic distance function of the poincare model
