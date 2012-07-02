@@ -41,7 +41,6 @@ import gtna.id.hyperbolic.Hyperbolic2DIdentifier;
 import gtna.id.hyperbolic.Hyperbolic2DIdentifierSpaceSimple;
 import gtna.id.hyperbolic.Hyperbolic2DPartitionSimple;
 import gtna.transformation.Transformation;
-import gtna.transformation.TransformationImpl;
 import gtna.util.Config;
 
 import java.util.LinkedList;
@@ -56,12 +55,12 @@ import org.apfloat.ApfloatMath;
  * @author andi
  * Hyperbolic Embedding algorithm by Cvetkovski and Crovella, INFOCOM 2009
  */
-public class CCEmbedding extends TransformationImpl implements Transformation{
+public class CCEmbedding extends Transformation{
 
 	private int precision = Integer.parseInt(Config.get("CC_EMBEDDING_PRECISION"));
 	
 	public CCEmbedding(){	
-		super("CC_EMBEDDING", new String[]{}, new String[]{});
+		super("CC_EMBEDDING");
 	}
 
 	/* (non-Javadoc)
