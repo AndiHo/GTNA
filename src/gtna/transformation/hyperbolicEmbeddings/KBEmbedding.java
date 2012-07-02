@@ -49,19 +49,18 @@ import gtna.id.hyperbolic.Hyperbolic2DIdentifier;
 import gtna.id.hyperbolic.Hyperbolic2DIdentifierSpaceSimple;
 import gtna.id.hyperbolic.Hyperbolic2DPartitionSimple;
 import gtna.transformation.Transformation;
-import gtna.transformation.TransformationImpl;
 import gtna.util.Config;
 
 /**
  * @author Andreas Höfer
  *
  */
-public class KBEmbedding extends TransformationImpl implements Transformation{
+public class KBEmbedding extends Transformation{
 
 	private int precision = Integer.parseInt(Config.get("KB_EMBEDDING_PRECISION"));
 	
 	public KBEmbedding() {
-		super("KB_EMBEDDING", new String[]{}, new String[]{});
+		super("KB_EMBEDDING");
 	}
 
 	/**
@@ -89,11 +88,12 @@ public class KBEmbedding extends TransformationImpl implements Transformation{
 		// choose a node randomly as start node for the graph traversal
 		// int rootIndex = 15148;
 		// (int) Math.floor(nodes.length * Math.random());
-		// int rootIndex = (int) Math.floor(nodes.length * Math.random());
-		int rootIndex = 30;
+		int rootIndex = (int) Math.floor(nodes.length * Math.random());
+		// int rootIndex = 1;
 		
 		// compute max degree of the spanning tree
-		int degree = 150; // maxDegreeSpanningTree(g, rootIndex);
+		int degree = maxDegreeSpanningTree(g, rootIndex);
+		System.out.println("maxDegree= " + degree);
 		
 		Apcomplex[] a = {Apfloat.ONE.negate(), Apfloat.ZERO, Apfloat.ZERO, Apfloat.ONE};
 		Apcomplex[] sigma = computeSigma(degree);
