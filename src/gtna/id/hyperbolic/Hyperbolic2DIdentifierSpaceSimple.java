@@ -26,7 +26,7 @@
  * (C) Copyright 2009-2011, by Benjamin Schiller (P2P, TU Darmstadt)
  * and Contributors 
  *
- * Original Author: andi;
+ * Original Author: Andreas Höfer;
  * Contributors:    -;
  *
  * Changes since 2011-05-17
@@ -37,6 +37,7 @@ package gtna.id.hyperbolic;
 
 import gtna.graph.Graph;
 import gtna.id.APFIdentifierSpace;
+import gtna.id.APFPartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
 import gtna.io.Filereader;
@@ -59,7 +60,7 @@ public class Hyperbolic2DIdentifierSpaceSimple implements APFIdentifierSpace {
 	 * @see gtna.id.IdentifierSpace#getPartitions()
 	 */
 	@Override
-	public Partition<Apfloat>[] getPartitions() {
+	public APFPartition[] getPartitions() {
 		return partitions;
 	}
 

@@ -26,7 +26,7 @@
  * (C) Copyright 2009-2011, by Benjamin Schiller (P2P, TU Darmstadt)
  * and Contributors 
  *
- * Original Author: andi;
+ * Original Author: Andreas Höfer;
  * Contributors:    -;
  *
  * Changes since 2011-05-17
@@ -42,7 +42,7 @@ import gtna.id.Identifier;
 import gtna.id.Partition;
 
 /**
- * @author andi
+ * @author Andreas Höfer
  *
  */
 public class Hyperbolic2DPartitionSimple implements APFPartition {
