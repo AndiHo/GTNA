@@ -67,10 +67,11 @@ public class ReadableList extends Network {
 
 	public ReadableList(String name, String folder, String[] files,
 			Parameter[] parameters, Transformation[] t) {
-		super(ReadableList.key(name, folder), Integer.MIN_VALUE, parameters, t);
+		super(ReadableList.key(name, folder), new GtnaGraphReader().nodes(files[0]), parameters, t);
+		// super(ReadableList.key(name, folder), Integer.MIN_VALUE, parameters, t);
 		this.files = files;
 		this.index = -1;
-		super.setNodes(new GtnaGraphReader().nodes(this.files[0]));
+		// super.setNodes(new GtnaGraphReader().nodes(this.files[0]));
 	}
 
 	public static String key(String name, String folder) {
