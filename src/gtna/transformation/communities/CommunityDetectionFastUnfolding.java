@@ -134,7 +134,7 @@ public class CommunityDetectionFastUnfolding extends Transformation{
 		int distinct = coms.getCommunities().size();
 		System.out.println(l + ":" + g.getNodes().length+"->"+distinct);
 		Node[] n2 = new Node[distinct];
-		NodeWeights nw = new NodeWeights(distinct);
+		NodeWeights nw = new NodeWeights();
 		EdgeWeights ew = new EdgeWeights(distinct);
 		Edges edges = new Edges(n2, distinct);
 		Edge e;
