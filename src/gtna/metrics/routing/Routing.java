@@ -68,6 +68,8 @@ public class Routing extends Metric {
 	private double successRate;
 	private double failureRate;
 
+	private boolean debug;
+	
 	public Routing(RoutingAlgorithm ra) {
 		super("ROUTING", new Parameter[] { new ParameterListParameter(
 				"ROUTING_ALGORITHM", ra) });
@@ -110,16 +112,12 @@ public class Routing extends Metric {
 		Random rand = new Random();
 		this.routes = new Route[graph.getNodes().length * this.routesPerNode];
 		int index = 0;
-//		
-//			for (Node start : graph.getNodes()) {
-//				for (int i = 0; i < this.routesPerNode; i++) {
-//					this.routes[index++] = ra.routeToRandomTarget(graph,
-//							start.getIndex(), rand);
-//				}
-//			}
+
 		RoutingThread[] threads = new RoutingThread[Config
 				.getInt("PARALLEL_ROUTINGS")];
-		System.out.println("PARALLEL_ROUTINGS =" + Config.getInt("PARALLEL_ROUTINGS"));
+		if (debug)
+			System.out.println("PARALLEL_ROUTINGS =" + Config.getInt("PARALLEL_ROUTINGS"));
+		
 		for (int i = 0; i < threads.length; i++) {
 			int start = graph.getNodes().length / threads.length * i;
 			int end = graph.getNodes().length / threads.length * (i + 1) - 1;
@@ -278,13 +276,14 @@ public class Routing extends Metric {
 
 		public void run() {
 			int index = 0;
+			
 			int OnePercentOfNodes = (int) Math.floor((end - start +1) * 0.01);
 			for (int i = this.start; i <= this.end; i++) {
 				for (int j = 0; j < this.times; j++) {
 					this.routes[index++] = ra.routeToRandomTarget(graph, i,
 							rand);
 				}
-				if ((OnePercentOfNodes > 0) && ((i-this.start) % OnePercentOfNodes == 0)){
+				if (debug && (OnePercentOfNodes > 0) && ((i-this.start) % OnePercentOfNodes == 0)){
 					int progress = (i-this.start) / OnePercentOfNodes; 
 					System.out.println("RoutingThread: start=" + start + " end=" + end + " " + progress + " % done.");
 				}
