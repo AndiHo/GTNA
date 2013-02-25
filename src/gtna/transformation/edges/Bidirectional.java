@@ -39,24 +39,40 @@ import gtna.graph.Edge;
 import gtna.graph.Edges;
 import gtna.graph.Graph;
 import gtna.transformation.Transformation;
+import gtna.util.parameter.BooleanParameter;
+import gtna.util.parameter.IntParameter;
+import gtna.util.parameter.Parameter;
 
 /**
  * @author benni
  * 
+ * if reduce is set to false, for any unidirectional edge without a return edge a return edge is added
+ * if reduce is set to true, any unidirectional edge without a return edge is deleted
  */
 public class Bidirectional extends Transformation {
 
+	private boolean reduce = false;
+	
 	public Bidirectional() {
-		super("BIDIRECTIONAL");
+		super("BIDIRECTIONAL", new Parameter[] {new BooleanParameter("REDUCE", false) });
 	}
-
+	
+	public Bidirectional(boolean reduce) {
+		super("BIDIRECTIONAL", new Parameter[] {new BooleanParameter("REDUCE", reduce) });
+		this.reduce = reduce;
+	}
+	
 	@Override
 	public Graph transform(Graph g) {
 		Edges oldEdges = g.getEdges();
-		Edges edges = new Edges(g.getNodes(), oldEdges.getEdges().size() * 2);
+		int nrOfEdges = (reduce) ? oldEdges.getEdges().size() : oldEdges.getEdges().size() * 2; 
+		Edges edges = new Edges(g.getNodes(), nrOfEdges);
 		for (Edge e : oldEdges.getEdges()) {
-			edges.add(e.getSrc(), e.getDst());
-			edges.add(e.getDst(), e.getSrc());
+			// check whether edges should be added or whether the return edge is available as well
+			if (!reduce || oldEdges.contains(e.getDst(), e.getSrc())){
+				edges.add(e.getSrc(), e.getDst());
+				edges.add(e.getDst(), e.getSrc());
+			}
 		}
 		edges.fill();
 		return g;
