@@ -42,6 +42,7 @@ import java.util.Random;
 import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.ParameterList;
 
 import gtna.graph.Graph;
+import gtna.graph.GraphProperty;
 import gtna.graph.Node;
 import gtna.id.euclidean.EuclideanIdentifier;
 import gtna.id.euclidean.EuclideanIdentifierSpaceSimple;
@@ -69,18 +70,33 @@ public class DecSpectralGD extends Transformation {
 
 	private int dims;
 	private int rounds;
+	private boolean continueEmbedding;
+	private boolean normalize;
 	
 	/**
 	 * @param dims: dimension of the id space the graph is embedded into
-	 * @param rounds: nr of round used in the spectral embedding procedure
+	 * @param rounds: nr of rounds used in the spectral embedding procedure
 	 * 
 	 */
 	public DecSpectralGD(int dims, int rounds) {
 		super("DEC_SPECTRAL_GD", new Parameter[] {new IntParameter("DIMS", dims), new IntParameter("ROUNDS", rounds) });
 		this.dims = dims;
 		this.rounds = rounds;
+		continueEmbedding = false;
+		normalize = true;
 	}
 
+	/**
+	 * @param dims: dimension of the id space the graph is embedded into
+	 * @param rounds: nr of rounds used in the spectral embedding procedure
+	 * @param continueEmbedding: if true start with the previous embedding and overwrite it at the end of the transform method 
+	 */
+	public DecSpectralGD(int dims, int rounds, boolean continueEmbedding, boolean normalize) {
+		this(dims, rounds);
+		this.continueEmbedding = continueEmbedding;
+		this.normalize = normalize;
+	}
+	
 	/* 
 	 * 
 	 */
@@ -90,61 +106,72 @@ public class DecSpectralGD extends Transformation {
 		Node[] nodes = g.getNodes();
 		// create an array of double arrays, each double array representing the coordinates of one node
 		double[][] coordinates = new double[nodes.length][dims];
+		
 		Random rand = new Random();
+		
+		// check whether the embedding should continue
+		// if yes restore the embedding
+		if (continueEmbedding){
+			EuclideanIdentifierSpaceSimple embedded = (EuclideanIdentifierSpaceSimple) g.getProperty("ID_SPACE_0"); 
+			for (int i=0; i < nodes.length; i++)
+				coordinates[i] = ((EuclideanIdentifier) embedded.getPartitions()[i].getRepresentativeID()).getPos();
+		}
 
-		// D-Orthogonalization against the all-one vector (the first trivial Eigenvector solution)		
-		// pairs of nodes are determined using random walks
-		// each node is paired with another node for each dimension
-		
-		// store in this array which node is paired with which node for each dimension in the distributed D-orthogonalization
-		boolean paired[][] = new boolean[nodes.length][dims];
-		for (int n=0; n < nodes.length; n++)
-			for (int d=0; d < dims; d++)
-				paired[n][d] = false;
-		
-		for (int d=0; d<dims; d++){
-			// the indices array contains a random permutation of the node indices 
-			// this permutation defines the order of the start node of the random walks
-			Integer[] indices = new Integer[nodes.length];
-			for (int ind=0; ind < indices.length; ind++ ){
-				indices[ind] = new Integer(ind);
-			}
-			Collections.shuffle(Arrays.asList(indices));
+		if (!continueEmbedding){
+			// D-Orthogonalization against the all-one vector (the first trivial Eigenvector solution)		
+			// pairs of nodes are determined using random walks
+			// each node is paired with another node for each dimension
+					
+			// store in this array which node is paired with which node for each dimension in the distributed D-orthogonalization
+			boolean paired[][] = new boolean[nodes.length][dims];
+			for (int n=0; n < nodes.length; n++)
+				for (int d=0; d < dims; d++)
+					paired[n][d] = false;
 			
-			// length of the random walk is O(log n) where n is the network size (fast mixing in social networks)
-			int rw_len = (int) Math.ceil(Math.log(nodes.length));
-			
-			// for each node do a random walk to find an unpaired node for pairing
-			// the random walk doesn't remember which nodes have already been visited before
-			for (int n=0; n <nodes.length; n++){
-				
-				// use indices[n] as start node of the random walk				
-				int curNodeIndex = indices[n];
-				
-				// skip nodes which are already paired
-				if (paired[indices[n]][d] == true)
-					continue;
-				
-				Node curNode = nodes[curNodeIndex]; 
-				int steps = 0;
-				int neighbors[];
-				while (steps < rw_len){
-					neighbors = curNode.getOutgoingEdges();
-					curNodeIndex = neighbors[rand.nextInt(curNode.getOutDegree())];
-					curNode = nodes[curNodeIndex];					
-					steps++;
+			for (int d=0; d<dims; d++){
+				// the indices array contains a random permutation of the node indices 
+				// this permutation defines the order of the start node of the random walks
+				Integer[] indices = new Integer[nodes.length];
+				for (int ind=0; ind < indices.length; ind++ ){
+					indices[ind] = new Integer(ind);
 				}
-				// the node we found is already paired or the random walk ended at the node it started from
-				if (paired[curNodeIndex][d] == true || indices[n] == curNodeIndex){
-					coordinates[indices[n]][d] = 0.0d;
-				}
-				else {
-					// set the coordinates of the nodes with indices indices[n] and curNodeIndex
-					paired[indices[n]][d] = true;
-					paired[curNodeIndex][d] = true;
-					double r = rand.nextDouble();
-					coordinates[indices[n]][d] = r / nodes[indices[n]].getOutDegree();
-					coordinates[curNodeIndex][d] = -1 * r / nodes[curNodeIndex].getOutDegree();							
+				Collections.shuffle(Arrays.asList(indices));
+				
+				// length of the random walk is O(log n) where n is the network size (fast mixing in social networks)
+				int rw_len = (int) Math.ceil(Math.log(nodes.length));
+				
+				// for each node do a random walk to find an unpaired node for pairing
+				// the random walk doesn't remember which nodes have already been visited before
+				for (int n=0; n <nodes.length; n++){
+					
+					// use indices[n] as start node of the random walk				
+					int curNodeIndex = indices[n];
+					
+					// skip nodes which are already paired
+					if (paired[indices[n]][d] == true)
+						continue;
+					
+					Node curNode = nodes[curNodeIndex]; 
+					int steps = 0;
+					int neighbors[];
+					while (steps < rw_len){
+						neighbors = curNode.getOutgoingEdges();
+						curNodeIndex = neighbors[rand.nextInt(curNode.getOutDegree())];
+						curNode = nodes[curNodeIndex];					
+						steps++;
+					}
+					// the node we found is already paired or the random walk ended at the node it started from
+					if (paired[curNodeIndex][d] == true || indices[n] == curNodeIndex){
+						coordinates[indices[n]][d] = 0.0d;
+					}
+					else {
+						// set the coordinates of the nodes with indices indices[n] and curNodeIndex
+						paired[indices[n]][d] = true;
+						paired[curNodeIndex][d] = true;
+						double r = rand.nextDouble();
+						coordinates[indices[n]][d] = r / nodes[indices[n]].getOutDegree();
+						coordinates[curNodeIndex][d] = -1 * r / nodes[curNodeIndex].getOutDegree();							
+					}
 				}
 			}
 		}
@@ -164,28 +191,30 @@ public class DecSpectralGD extends Transformation {
 		}
 		
 		// Normalization
-		double[][] m =  new double[nodes.length][dims];
-		for (int n=0; n < nodes.length; n++){
-			for (int d=0; d < dims; d++)
-				m[n][d] = coordinates[n][d] * coordinates[n][d];
-		}
-		for (int r=0; r < rounds; r++){
-			for (int d=0; d < dims; d++){
-				double[] new_m = new double[nodes.length];	
-				for (int n=0; n < nodes.length; n++){
-					new_m[n] = 0.5d * (m[n][d] + sum(m, nodes[n].getOutgoingEdges(), d)/nodes[n].getOutDegree());
+		if (normalize) {
+			double[][] m =  new double[nodes.length][dims];
+			for (int n=0; n < nodes.length; n++){
+				for (int d=0; d < dims; d++)
+					m[n][d] = coordinates[n][d] * coordinates[n][d];
+			}
+			for (int r=0; r < rounds; r++){
+				for (int d=0; d < dims; d++){
+					double[] new_m = new double[nodes.length];	
+					for (int n=0; n < nodes.length; n++){
+						new_m[n] = 0.5d * (m[n][d] + sum(m, nodes[n].getOutgoingEdges(), d)/nodes[n].getOutDegree());
+					}
+					for (int n=0; n< nodes.length; n++){
+						m[n][d] = new_m[n];
+					}		
 				}
-				for (int n=0; n< nodes.length; n++){
-					m[n][d] = new_m[n];
-				}		
+			}
+			for (int n=0; n < nodes.length; n++){
+				for (int d=0; d < dims; d++){
+					if (m[n][d] != 0.0d)
+						coordinates[n][d] = coordinates[n][d] / Math.sqrt(m[n][d]);
+				}
 			}
 		}
-		for (int n=0; n < nodes.length; n++){
-			for (int d=0; d < dims; d++){
-				coordinates[n][d] = coordinates[n][d] / Math.sqrt(m[n][d]);
-			}
-		}
-				
 		// create the id space, the partitions and assign each partition its identifier
 		EuclideanIdentifierSpaceSimple idSpace = new EuclideanIdentifierSpaceSimple();
 				
@@ -195,15 +224,21 @@ public class DecSpectralGD extends Transformation {
 		}
 		idSpace.setPartitions(partitions);
 		
-		g.addProperty(g.getNextKey("ID_SPACE"), idSpace);
+			
+		if (continueEmbedding){
+			// overwrite the old embedding (always the first ID space in case there are several id spaces)
+			g.addProperty("ID_SPACE_0", idSpace);
+		} else { 
+			g.addProperty(g.getNextKey("ID_SPACE"), idSpace);
+		}
 		return g;
 	}
 
-	private double sum(double[][] coordinates, int[] neighboring, int currentDim){
+	private double sum(double[][] data, int[] neighboring, int currentDim){
 		
 		double sum = 0.0d;
 		for (int neighbor:neighboring){
-			sum += coordinates[neighbor][currentDim];
+			sum += data[neighbor][currentDim];
 		}
 		return sum;
 	}
