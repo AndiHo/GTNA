@@ -50,7 +50,7 @@ import java.util.ArrayList;
  * 
  */
 public class SpanningTree implements GraphProperty {
-	private int[] parent;
+	protected int[] parent;
 	private int[][] children;
 	private int[] depth;
 	
@@ -66,7 +66,7 @@ public class SpanningTree implements GraphProperty {
 		this.fill(g.getNodes().length, pcs);
 	}
 
-	private void fill(int nodes, ArrayList<ParentChild> pcs) {
+	protected void fill(int nodes, ArrayList<ParentChild> pcs) {
 		this.parent = Util.initIntArray(nodes, -1);
 		this.children = new int[nodes][];
 		this.depth = Util.initIntArray(nodes, -1);
@@ -91,8 +91,10 @@ public class SpanningTree implements GraphProperty {
 			counter[pc.getParent()]--;
 		}
 		// find src
-		for (int i = 0; i < this.parent.length; i++) {
-			if (this.parent[i] == -1) {
+		for (int i = 0; i < this.parent.length; i++){ 
+			// root is the node with no parent and some children
+			// the second check is necessary for the case that not all nodes are part of the spanning tree
+			if (this.parent[i] == -1 && this.children[i].length > 0) {
 				this.src = i;
 				this.depth[i] = 0;
 				break;
@@ -155,7 +157,8 @@ public class SpanningTree implements GraphProperty {
 		// LIST OF COMMUNITIES
 		ParentChild[] pcs = this.generateParentChildList();
 		for (ParentChild pc : pcs) {
-			fw.writeln(pc.toString());
+			if (pc != null)
+				fw.writeln(pc.toString());
 		}
 
 		return fw.close();
@@ -180,7 +183,7 @@ public class SpanningTree implements GraphProperty {
 		while ((line = fr.readLine()) != null) {
 			pcs.add(new ParentChild(line));
 		}
-
+		
 		this.fill(nodes, pcs);
 
 		fr.close();
