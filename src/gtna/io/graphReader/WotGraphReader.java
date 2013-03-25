@@ -147,13 +147,13 @@ public class WotGraphReader extends GraphReader {
 			}
 
 			// skip the "debug/" line
-			String debugLine = file.readLine();
-			if (!debugLine.startsWith("debug/")) {
-				// FIXME an IllegalArgumentException isn't really semantically
-				// correct
-				throw new IllegalArgumentException(
-						"A line starting with \"debug/was expected.");
-			}
+//			String debugLine = file.readLine();
+//			if (!debugLine.startsWith("debug/")) {
+//				// FIXME an IllegalArgumentException isn't really semantically
+//				// correct
+//				throw new IllegalArgumentException(
+//						"A line starting with \"debug/was expected.");
+//			}
 			file.close();
 
 			// prepare return graph
