@@ -18,8 +18,6 @@
     	</zip>
         <delete dir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
         <mkdir dir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
-        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/commons-math-2.0.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
-        <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/log4j-1.2.16.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
         <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/apfloat.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
         <copy file="/data/p2p-arbeit/Forschung/GTNA/lib/samples.jar" todir="/data/p2p-arbeit/Forschung/GTNA/gtna-embeddings_lib"/>
     </target>
