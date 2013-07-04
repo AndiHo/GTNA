@@ -39,7 +39,7 @@ import gtna.data.Single;
 import gtna.graph.Edge;
 import gtna.graph.Graph;
 import gtna.graph.Node;
-import gtna.id.DIdentifierSpace;
+import gtna.id.DoubleIdentifierSpace;
 import gtna.id.IdentifierSpace;
 import gtna.id.Partition;
 import gtna.id.md.MDIdentifier;
@@ -54,7 +54,6 @@ import gtna.io.DataWriter;
 import gtna.metrics.Metric;
 import gtna.networks.Network;
 import gtna.util.Distribution;
-import gtna.util.Timer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +67,6 @@ import java.util.TreeSet;
  * 
  */
 public class EdgeCrossings extends Metric {
-	private Timer runtime;
 	private double[] cd;
 	private int maxCrossingNumber;
 	private HashSet<String> handledEdges;
@@ -86,13 +84,11 @@ public class EdgeCrossings extends Metric {
 	}
 
 	public void computeData(Graph graph, Network nw, HashMap<String, Metric> m) {
-		this.runtime = new Timer();
-
 		Edge[] edges = graph.generateEdges();
 
-		DIdentifierSpace idSpace = (DIdentifierSpace) graph
+		DoubleIdentifierSpace idSpace = (DoubleIdentifierSpace) graph
 				.getProperty("ID_SPACE_0");
-		int result = calculateCrossings(edges, idSpace, false);
+		calculateCrossings(edges, idSpace, false);
 
 		double[] finalCD = new double[maxCrossingNumber + 1];
 		for (int i = 0; i < maxCrossingNumber + 1; i++) {
@@ -101,8 +97,6 @@ public class EdgeCrossings extends Metric {
 		this.completeCrossingDistribution = new Distribution(finalCD);
 		this.crossingsOnlyDistribution = new Distribution(Arrays.copyOfRange(
 				finalCD, 1, finalCD.length));
-
-		this.runtime.end();
 	}
 
 	public int calculateCrossings(Edge[] edges, IdentifierSpace idSpace,
@@ -110,7 +104,6 @@ public class EdgeCrossings extends Metric {
 		int result = 0;
 		cd = new double[edges.length];
 		maxCrossingNumber = 0;
-		this.runtime = new Timer();
 		partitions = idSpace.getPartitions();
 
 		if (useShortcuts && idSpace instanceof RingIdentifierSpace) {
@@ -135,10 +128,6 @@ public class EdgeCrossings extends Metric {
 			}
 			handledEdges = null;
 		}
-		this.runtime.end();
-		// System.out.println("Computed " + result + " crossings with " +
-		// edges.length + " edges in " + runtime.getMsec()
-		// + " msec");
 		return result;
 	}
 
@@ -261,7 +250,7 @@ public class EdgeCrossings extends Metric {
 		} else if (idSpace instanceof RingIdentifierSpace) {
 			return hasCrossingRing(x, y);
 		} else if (idSpace instanceof MDIdentifierSpaceSimple) {
-			int dim = ((MDIdentifierSpaceSimple) idSpace).getDimensions();
+			int dim = ((MDIdentifierSpaceSimple) idSpace).getModulus().length;
 			if (dim == 2) {
 				return hasCrossingMD(x, y, useShortcut);
 			} else {
@@ -276,11 +265,11 @@ public class EdgeCrossings extends Metric {
 
 	private PlaneEdge getPlaneEdgeFromPI(Edge x) {
 		PlaneIdentifier startID = (PlaneIdentifier) ((PlanePartitionSimple) partitions[x
-				.getSrc()]).getRepresentativeID();
+				.getSrc()]).getRepresentativeIdentifier();
 		double startX = startID.getX();
 		double startY = startID.getY();
 		PlaneIdentifier endID = (PlaneIdentifier) ((PlanePartitionSimple) partitions[x
-				.getDst()]).getRepresentativeID();
+				.getDst()]).getRepresentativeIdentifier();
 		double endX = endID.getX();
 		double endY = endID.getY();
 		return new PlaneEdge(startX, startY, endX, endY);
@@ -293,21 +282,21 @@ public class EdgeCrossings extends Metric {
 
 	private PlaneEdge getPlaneEdgeFromMD(Edge x) {
 		MDIdentifier startID = (MDIdentifier) ((MDPartitionSimple) partitions[x
-				.getSrc()]).getRepresentativeID();
+				.getSrc()]).getRepresentativeIdentifier();
 		if (startID.getCoordinates().length > 2) {
 			throw new RuntimeException("Cannot calculate crossings  with "
 					+ startID.getCoordinates().length + " dimensions");
 		}
-		double startX = startID.getCoordinate(0);
-		double startY = startID.getCoordinate(1);
+		double startX = startID.getCoordinates()[0];
+		double startY = startID.getCoordinates()[1];
 		MDIdentifier endID = (MDIdentifier) ((MDPartitionSimple) partitions[x
-				.getDst()]).getRepresentativeID();
+				.getDst()]).getRepresentativeIdentifier();
 		if (endID.getCoordinates().length > 2) {
 			throw new RuntimeException("Cannot calculate crossings with "
 					+ endID.getCoordinates().length + " dimensions");
 		}
-		double endX = endID.getCoordinate(0);
-		double endY = endID.getCoordinate(1);
+		double endX = endID.getCoordinates()[0];
+		double endY = endID.getCoordinates()[1];
 		return new PlaneEdge(startX, startY, endX, endY);
 	}
 

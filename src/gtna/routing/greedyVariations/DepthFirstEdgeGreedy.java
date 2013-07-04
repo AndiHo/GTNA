@@ -36,8 +36,8 @@
 package gtna.routing.greedyVariations;
 
 import gtna.graph.Node;
-import gtna.id.BIIdentifier;
-import gtna.id.DIdentifier;
+import gtna.id.BigIntegerIdentifier;
+import gtna.id.DoubleIdentifier;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -60,7 +60,7 @@ public class DepthFirstEdgeGreedy extends EdgeGreedy {
 	}
 
 	@Override
-	public int getNextD(int current, DIdentifier target, Random rand,
+	public int getNextD(int current, DoubleIdentifier target, Random rand,
 			Node[] nodes) {
 		// System.out.println("Currently at " + current);
 		Vector<Integer> pre = from.get(current);
@@ -110,7 +110,7 @@ public class DepthFirstEdgeGreedy extends EdgeGreedy {
 	}
 
 	@Override
-	public int getNextBI(int current, BIIdentifier target, Random rand,
+	public int getNextBI(int current, BigIntegerIdentifier target, Random rand,
 			Node[] nodes) {
 
 		Vector<Integer> pre = from.get(current);

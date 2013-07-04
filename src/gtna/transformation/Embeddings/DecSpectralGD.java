@@ -114,7 +114,7 @@ public class DecSpectralGD extends Transformation {
 		if (continueEmbedding){
 			EuclideanIdentifierSpaceSimple embedded = (EuclideanIdentifierSpaceSimple) g.getProperty("ID_SPACE_0"); 
 			for (int i=0; i < nodes.length; i++)
-				coordinates[i] = ((EuclideanIdentifier) embedded.getPartitions()[i].getRepresentativeID()).getPos();
+				coordinates[i] = ((EuclideanIdentifier) embedded.getPartitions()[i].getRepresentativeIdentifier()).getPos();
 		}
 
 		if (!continueEmbedding){
@@ -215,14 +215,13 @@ public class DecSpectralGD extends Transformation {
 				}
 			}
 		}
-		// create the id space, the partitions and assign each partition its identifier
-		EuclideanIdentifierSpaceSimple idSpace = new EuclideanIdentifierSpaceSimple();
-				
+		// the partitions and assign each partition its identifier
 		EuclideanPartitionSimple[] partitions = new EuclideanPartitionSimple[g.getNodes().length];
 		for (int i=0; i < nodes.length; i++){
 			partitions[i] = new EuclideanPartitionSimple(new EuclideanIdentifier(coordinates[i]));
 		}
-		idSpace.setPartitions(partitions);
+		// create the id space
+		EuclideanIdentifierSpaceSimple idSpace = new EuclideanIdentifierSpaceSimple(partitions);
 		
 			
 		if (continueEmbedding){

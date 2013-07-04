@@ -55,7 +55,7 @@ import gtna.networks.model.placementmodels.models.CommunityPlacementModel;
 import gtna.networks.model.placementmodels.partitioners.SimplePartitioner;
 import gtna.networks.util.DescriptionWrapper;
 import gtna.networks.util.ReadableFile;
-import gtna.plot.Data.Type;
+import gtna.plot.data.Data.Type;
 import gtna.plot.Gnuplot.Style;
 import gtna.plot.Plotting;
 import gtna.routing.greedy.Greedy;
@@ -64,7 +64,7 @@ import gtna.routing.greedyVariations.DepthFirstGreedy;
 import gtna.transformation.Transformation;
 import gtna.transformation.attackableEmbedding.lmc.LMC;
 import gtna.transformation.attackableEmbedding.swapping.Swapping;
-import gtna.transformation.communities.CommunityDetectionLPA;
+import gtna.transformation.communities.CDLPA;
 import gtna.transformation.embedding.communities.CommunityEmbedding;
 import gtna.transformation.embedding.communities.SimpleCommunityEmbedding1;
 import gtna.transformation.embedding.communities.SimpleCommunityEmbedding2;
@@ -108,24 +108,24 @@ public class CommunityEmbeddingsTest {
 
 			Network nw = new ErdosRenyi(10, 3, true, null);
 
-			Transformation cd = new CommunityDetectionLPA(20);
+			Transformation cd = new CDLPA(20);
 			Transformation ce1 = new SimpleCommunityEmbedding1();
 			Transformation ce2 = new SimpleCommunityEmbedding2();
 			Transformation ce_1 = new CommunityEmbedding(
 					new OriginalCommunitySorter(),
 					new RelativeSizeIdSpacePartitioner(0.0),
 					new OriginalNodeSorter(),
-					new EqualSizeCommunityPartitioner(), 1.0, true);
+					new EqualSizeCommunityPartitioner(), true);
 			Transformation ce_2 = new CommunityEmbedding(
 					new OriginalCommunitySorter(),
 					new EqualSizeIdSpacePartitioner(0.0),
 					new OriginalNodeSorter(),
-					new EqualSizeCommunityPartitioner(), 1.0, true);
+					new EqualSizeCommunityPartitioner(), true);
 			Transformation ce_3 = new CommunityEmbedding(
 					new NeighborsByEdgesCommunitySorter(),
 					new EqualSizeIdSpacePartitioner(0.0),
 					new OriginalNodeSorter(),
-					new EqualSizeCommunityPartitioner(), 1.0, true);
+					new EqualSizeCommunityPartitioner(), true);
 
 			Graph g = nw.generate();
 
@@ -155,10 +155,10 @@ public class CommunityEmbeddingsTest {
 
 		Transformation scp = new StrongConnectivityPartition();
 		Transformation gcc = new LargestWeaklyConnectedComponent();
-		Transformation cd = new CommunityDetectionLPA(20);
+		Transformation cd = new CDLPA(20);
 		// Transformation cd = new CommunityDetectionDeltaQ();
 
-		Transformation re = new RandomRingIDSpaceSimple();
+		Transformation re = new RandomRingIDSpaceSimple(true);
 		Transformation lmc = new LMC(1000, LMC.MODE_UNRESTRICTED, 0,
 				LMC.DELTA_1_N, 0);
 		Transformation sw = new Swapping(1000);
@@ -169,20 +169,20 @@ public class CommunityEmbeddingsTest {
 				new OriginalCommunitySorter(),
 				new RelativeSizeIdSpacePartitioner(0.0),
 				new OriginalNodeSorter(), new EqualSizeCommunityPartitioner(),
-				1.0, true);
+				true);
 		Transformation ce_2 = new CommunityEmbedding(
 				new OriginalCommunitySorter(), new EqualSizeIdSpacePartitioner(
 						0.0), new OriginalNodeSorter(),
-				new EqualSizeCommunityPartitioner(), 1.0, true);
+				new EqualSizeCommunityPartitioner(), true);
 		Transformation ce_3 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new RelativeSizeIdSpacePartitioner(0.0),
 				new OriginalNodeSorter(), new EqualSizeCommunityPartitioner(),
-				1.0, true);
+				true);
 		Transformation ce_4 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new EqualSizeIdSpacePartitioner(0.0), new OriginalNodeSorter(),
-				new EqualSizeCommunityPartitioner(), 1.0, true);
+				new EqualSizeCommunityPartitioner(), true);
 
 		Transformation[] tr = new Transformation[] { scp, gcc, cd, re };
 		Transformation[] tlmc = new Transformation[] { scp, gcc, cd, re, lmc };

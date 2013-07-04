@@ -35,6 +35,9 @@
  */
 package gtna.id.prefix;
 
+import java.util.Random;
+
+import gtna.id.SIdentifier;
 import gtna.id.SPartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
@@ -42,8 +45,9 @@ import gtna.id.Partition;
 /**
  * @author Andreas Höfer
  *
+ * TODO: STill the same semnatics as PrefixSPartitionSimple, needs to be changed
  */
-public class PrefixSPartition implements Partition<Integer> {
+public class PrefixSPartition extends SPartition {
 
 	private PrefixSIdentifier id;
 	
@@ -51,39 +55,63 @@ public class PrefixSPartition implements Partition<Integer> {
 		this.id = id;
 	}
 
+	public String toString() {
+		return this.id.toString();
+	}
+
 	/* (non-Javadoc)
-	 * @see gtna.id.Partition#distance(gtna.id.Identifier)
+	 * @see gtna.id.SPartition#distance(gtna.id.SIdentifier)
 	 */
 	@Override
-	public Integer distance(Identifier<Integer> id) {
+	public short distance(SIdentifier id) {
 		return this.id.distance(id);
 	}
 
 	/* (non-Javadoc)
-	 * @see gtna.id.Partition#equals(gtna.id.Partition)
+	 * @see gtna.id.SPartition#distance(gtna.id.SPartition)
 	 */
 	@Override
-	public boolean equals(Partition<Integer> p) {
-		return this.id.equals((PrefixSIdentifier) p.getRepresentativeID());
+	public short distance(SPartition p) {
+		return this.id.distance((SIdentifier) p.getRepresentativeIdentifier());
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#asString()
+	 */
+	@Override
+	public String asString() {
+		return id.toString();
 	}
 
 	/* (non-Javadoc)
 	 * @see gtna.id.Partition#contains(gtna.id.Identifier)
 	 */
 	@Override
-	public boolean contains(Identifier<Integer> id) {
+	public boolean contains(Identifier id) {
 		return this.id.equals(id);
 	}
 
 	/* (non-Javadoc)
-	 * @see gtna.id.Partition#getRepresentativeID()
+	 * @see gtna.id.Partition#getRepresentativeIdentifier()
 	 */
 	@Override
-	public Identifier<Integer> getRepresentativeID() {
+	public Identifier getRepresentativeIdentifier() {
 		return this.id;
 	}
 
-	public String toString() {
-		return this.id.toString();
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#getRandomIdentifier(java.util.Random)
+	 */
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return new PrefixSIdentifier(id);
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#equals(gtna.id.Partition)
+	 */
+	@Override
+	public boolean equals(Partition p) {
+		return this.id.equals((PrefixSIdentifier) p.getRepresentativeIdentifier());
 	}
 }

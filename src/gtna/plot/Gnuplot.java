@@ -38,6 +38,7 @@ package gtna.plot;
 import gtna.io.DataWriter;
 import gtna.io.Output;
 import gtna.metrics.Metric;
+import gtna.plot.data.Data;
 import gtna.util.Config;
 
 import java.io.BufferedReader;
@@ -56,7 +57,9 @@ public class Gnuplot {
 	}
 
 	private static String getScriptName(Metric[] m, String plotKey) {
-		if (m.length > 1) {
+		if (m == null) {
+			return Config.get("TEMP_FOLDER") + plotKey + ".gnuplot.txt";
+		} else if (m.length > 1) {
 			return Config.get("TEMP_FOLDER") + m[0].getKey()
 					+ Config.get("PLOT_GROUPED_KEYWORD") + "." + plotKey
 					+ ".gnuplot.txt";
@@ -67,6 +70,10 @@ public class Gnuplot {
 	}
 
 	private static String getDataName(Metric m, String plotKey, int index) {
+		if (m == null) {
+			return Config.get("TEMP_FOLDER") + plotKey + ".data." + index
+					+ ".txt";
+		}
 		return Config.get("TEMP_FOLDER") + m.getFolderName() + "." + plotKey
 				+ ".data." + index + ".txt";
 	}

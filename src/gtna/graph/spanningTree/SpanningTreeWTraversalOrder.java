@@ -46,6 +46,7 @@ import java.util.Queue;
 
 /**
  * @author Andreas Höfer
+ * 
  * Spanning Tree with predefined traversal order. It is assumed that the order in the list of ParentChild relations passed to the
  * constructor defines the traversal order. This traversal order is stored as ParentChild list in the spanning tree object.
  * It is assumed that the traversal order is respected when constructing the children lists of the nodes, 
@@ -75,44 +76,14 @@ public class SpanningTreeWTraversalOrder extends SpanningTree {
 		throw new RuntimeException("Invalid Operation: SpanningTreeWTraversalOrder.generateParentChildList()");
 	}
 
-	@Override
-	public boolean write(String filename, String key) {
-		Filewriter fw = new Filewriter(filename);
 
-		// CLASS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
-		fw.writeln(this.getClass().getCanonicalName().toString());
-
-		// KEYS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
-		fw.writeln(key);
-
-		// # OF NODES
-		fw.writeComment("Nodes");
-		fw.writeln(this.parent.length);
-
-		fw.writeln();
-
-		// LIST OF PCS
-		for (ParentChild pc : traversalorder) {
-			if (pc != null)
-				fw.writeln(pc.toString());
-		}
-
-		return fw.close();
-	}
 
 	@Override
-	public void read(String filename, Graph graph) {
+	public String read(String filename) {
 		Filereader fr = new Filereader(filename);
 
-		// CLASS
-		fr.readLine();
+		String key = this.readHeader(fr);
 
-		// KEYS
-		String key = fr.readLine();
-
-		// # OF NODES
 		int nodes = Integer.parseInt(fr.readLine());
 
 		// Construct ParentChild list
@@ -127,9 +98,26 @@ public class SpanningTreeWTraversalOrder extends SpanningTree {
 		
 		fr.close();
 
-		graph.addProperty(key, this);
+		return key;
 	}
-	
+		
+	@Override
+	public boolean write(String filename, String key) {
+		Filewriter fw = new Filewriter(filename);
+
+		this.writeHeader(fw, this.getClass(), key);
+
+		this.writeParameter(fw, "Nodes", this.parent.length);
+
+		// LIST OF PCS
+		for (ParentChild pc : traversalorder) {
+			if (pc != null)
+				fw.writeln(pc.toString());
+		}
+
+		return fw.close();
+	}
+
 	/*
 	 * Check whether the traversal order given by the children lists of the nodes and by the ParentChild list fit together
 	 */

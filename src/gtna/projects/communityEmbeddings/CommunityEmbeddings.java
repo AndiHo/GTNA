@@ -58,7 +58,7 @@ import gtna.networks.model.placementmodels.partitioners.SimplePartitioner;
 import gtna.networks.util.DescriptionWrapper;
 import gtna.networks.util.ReadableFolder;
 import gtna.plot.Plotting;
-import gtna.plot.Data.Type;
+import gtna.plot.data.Data.Type;
 import gtna.plot.Gnuplot.Style;
 import gtna.routing.greedy.Greedy;
 import gtna.routing.greedy.GreedyBacktracking;
@@ -66,7 +66,7 @@ import gtna.routing.greedyVariations.DepthFirstGreedy;
 import gtna.transformation.Transformation;
 import gtna.transformation.attackableEmbedding.lmc.LMC;
 import gtna.transformation.attackableEmbedding.swapping.Swapping;
-import gtna.transformation.communities.CommunityDetectionLPA;
+import gtna.transformation.communities.CDLPA;
 import gtna.transformation.edges.Bidirectional;
 import gtna.transformation.embedding.communities.CommunityEmbedding;
 import gtna.transformation.embedding.communities.partitioner.community.LmcCommunityPartitioner;
@@ -140,32 +140,30 @@ public class CommunityEmbeddings {
 		// sort nodes: random / lmc
 		// partition communities: random
 
-		Transformation rridss = new RandomRingIDSpaceSimple();
+		Transformation rridss = new RandomRingIDSpaceSimple(true);
 		Transformation sw = new Swapping(1000);
 		Transformation lmc = new LMC(1000, LMC.MODE_UNRESTRICTED, 0,
 				LMC.DELTA_1_N, 0);
 
 		Transformation ce1 = new CommunityEmbedding(
 				new RandomCommunitySorter(), new RandomIdSpacePartitioner(),
-				new RandomNodeSorter(), new RandomCommunityPartitioner(), 1.0,
-				true);
+				new RandomNodeSorter(), new RandomCommunityPartitioner(), true);
 		Transformation ce2 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new RandomIdSpacePartitioner(), new RandomNodeSorter(),
-				new RandomCommunityPartitioner(), 1.0, true);
+				new RandomCommunityPartitioner(), true);
 		Transformation ce3 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new RandomIdSpacePartitioner(), new LmcNodeSorter(),
-				new RandomCommunityPartitioner(), 1.0, true);
+				new RandomCommunityPartitioner(), true);
 		Transformation ce4 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new RandomIdSpacePartitioner(), new RandomNodeSorter(),
-				new LmcCommunityPartitioner(), 1.0, true);
+				new LmcCommunityPartitioner(), true);
 		Transformation ce5 = new CommunityEmbedding(
 				new NeighborsByEdgesCommunitySorter(),
 				new RelativeSizeIdSpacePartitioner(0.0),
-				new RandomNodeSorter(), new LmcCommunityPartitioner(), 1.0,
-				true);
+				new RandomNodeSorter(), new LmcCommunityPartitioner(), true);
 
 		Transformation[] t_r = new Transformation[] { rridss };
 		Transformation[] t_sw = new Transformation[] { rridss, sw };
@@ -292,7 +290,7 @@ public class CommunityEmbeddings {
 		Transformation rgp = new RemoveGraphProperty();
 		Transformation bi = new Bidirectional();
 		Transformation lwcc = new LargestWeaklyConnectedComponent();
-		Transformation cd = new CommunityDetectionLPA(50);
+		Transformation cd = new CDLPA(50);
 
 		for (int i = 0; i < times; i++) {
 			String dst = dstFolder + i + ".gtna";

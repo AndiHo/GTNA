@@ -54,11 +54,11 @@ import gtna.networks.model.placementmodels.models.CommunityPlacementModel;
 import gtna.networks.model.placementmodels.partitioners.SimplePartitioner;
 import gtna.networks.util.DescriptionWrapper;
 import gtna.networks.util.ReadableFolder;
-import gtna.plot.Data.Type;
 import gtna.plot.Gnuplot.Style;
+import gtna.plot.data.Data.Type;
 import gtna.plot.Plotting;
 import gtna.transformation.Transformation;
-import gtna.transformation.communities.CommunityDetectionLPA;
+import gtna.transformation.communities.CDLPA;
 import gtna.transformation.communities.GuimeraRolesTransformation;
 import gtna.transformation.communities.WsnRolesTransformation;
 import gtna.transformation.util.RemoveGraphProperty;
@@ -94,7 +94,7 @@ public class PlacementModelSidnetComparison {
 
 		for (int nodes : N) {
 			Transformation[] t1 = new Transformation[] {
-					new CommunityDetectionLPA(20),
+					new CDLPA(20),
 					new GuimeraRolesTransformation(),
 					new WsnRolesTransformation() };
 			Transformation[] t2 = new Transformation[] {
@@ -104,7 +104,7 @@ public class PlacementModelSidnetComparison {
 					new RemoveGraphProperty(
 							RemoveGraphProperty.RemoveType.SELECTED,
 							new String[] { "COMMUNITIES_0" }),
-					new CommunityDetectionLPA(20),
+					new CDLPA(20),
 					new GuimeraRolesTransformation(),
 					new WsnRolesTransformation() };
 

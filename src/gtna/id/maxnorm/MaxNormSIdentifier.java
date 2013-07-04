@@ -35,14 +35,14 @@
  */
 package gtna.id.maxnorm;
 
-import gtna.id.SIdentifier;
 import gtna.id.Identifier;
+import gtna.id.SIdentifier;
 
 /**
  * @author Andreas Höfer
  *
  */
-public class MaxNormSIdentifier implements SIdentifier {
+public class MaxNormSIdentifier extends SIdentifier {
 
 	private short[] pos;
 	
@@ -72,11 +72,20 @@ public class MaxNormSIdentifier implements SIdentifier {
 		this.pos = pos;
 	}
 	
-	/* (non-Javadoc)
+	/**
+	 * @param id
+	 * 
+	 * Copy constructor
+	 */
+	public MaxNormSIdentifier(MaxNormSIdentifier id) {
+		this.pos = id.pos.clone();
+	}
+
+	/* 
 	 * @see gtna.id.Identifier#distance(gtna.id.Identifier)
 	 */
 	@Override
-	public Short distance(Identifier<Short> id) {
+	public short distance(SIdentifier id) {
 		
 		short[] otherpos = ((MaxNormSIdentifier) id).pos;
 		int common = (pos.length < otherpos.length) ? pos.length : otherpos.length; 
@@ -94,11 +103,11 @@ public class MaxNormSIdentifier implements SIdentifier {
 		return (short) dist;
 	}
 
-	/* (non-Javadoc)
+	/* 
 	 * @see gtna.id.Identifier#equals(gtna.id.Identifier)
 	 */
 	@Override
-	public boolean equals(Identifier<Short> id) {
+	public boolean equals(Identifier id) {
 		short[] otherpos = ((MaxNormSIdentifier) id).pos;
 		if (pos.length != otherpos.length)
 			return false;
@@ -107,5 +116,12 @@ public class MaxNormSIdentifier implements SIdentifier {
 				return false;
 		return true;
 	}
-	
+
+	/* 
+	 * @see gtna.id.Identifier#asString()
+	 */
+	@Override
+	public String asString() {
+		return this.toString();
+	}
 }

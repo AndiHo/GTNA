@@ -39,6 +39,7 @@ import gtna.graph.Graph;
 import gtna.io.graphWriter.GtnaGraphWriter;
 import gtna.metrics.Metric;
 import gtna.networks.Network;
+import gtna.networks.util.ReadableFolder;
 import gtna.transformation.Transformation;
 import gtna.util.Config;
 import gtna.util.Timer;
@@ -132,6 +133,14 @@ public class Series {
 				+ Config.get("SERIES_RUNTIME_FILENAME");
 	}
 
+	public String getEtcFilename() {
+		return this.getFolder() + Config.get("SERIES_ETC_FILENAME");
+	}
+
+	public String getEtcFilename(int run) {
+		return this.getSeriesFolderRun(run) + Config.get("SERIES_ETC_FILENAME");
+	}
+
 	public String[] getRunFolders() {
 		int run = 0;
 		while (run < 10000000) {
@@ -169,8 +178,33 @@ public class Series {
 		return s;
 	}
 
+	/**
+	 * Generates $times runs for the given network (0 to ($times-1)).
+	 * 
+	 * @param nw
+	 * @param metrics
+	 * @param times
+	 * @return
+	 */
 	public static Series generate(Network nw, Metric[] metrics, int times) {
-		System.out.println("series (" + times + ") for "
+		return Series.generate(nw, metrics, 0, times - 1);
+	}
+
+	/**
+	 * Generates ($endRun - $startRun + 1) runs for the given network ($startRun
+	 * to $endRun). In case $startRun > 0, the generated data is not aggregated!
+	 * 
+	 * @param nw
+	 * @param metrics
+	 * @param startRun
+	 * @param endRun
+	 * @return
+	 */
+	public static Series generate(Network nw, Metric[] metrics, int startRun,
+			int endRun) {
+		for (int i = 0; i < Config.getInt("TIMES_TO_CALL_GC_BEFORE_EACH_SERIES"); i++)
+			System.gc();
+		System.out.println("series (" + startRun + " - " + endRun + ") for "
 				+ nw.getDescriptionShort());
 		Series s = new Series(nw, metrics);
 		File folder = new File(s.getFolder());
@@ -183,14 +217,30 @@ public class Series {
 				folder.mkdirs();
 			}
 		}
-		for (int run = 0; run < times; run++) {
+
+		if (s.getNetwork() instanceof ReadableFolder) {
+			for (int run = 0; run < startRun; run++) {
+				((ReadableFolder) s.getNetwork()).incIndex();
+			}
+		}
+
+		for (int run = startRun; run <= endRun; run++) {
+			for (int i = 0; i < Config
+					.getInt("TIMES_TO_CALL_GC_BEFORE_EACH_RUN"); i++)
+				System.gc();
 			if (!Series.generateRun(s, run)) {
 				System.err.println("error in run " + run);
 				return null;
 			}
 		}
+
+		if (startRun != 0) {
+			System.out.println("\n");
+			return s;
+		}
+
 		Timer timerAggregation = new Timer("\n===> " + s.getFolder());
-		boolean success = Aggregation.aggregate(s, times);
+		boolean success = Aggregation.aggregate(s, endRun + 1);
 		timerAggregation.end();
 		System.out.println("\n");
 		if (success) {
@@ -203,15 +253,19 @@ public class Series {
 	private static boolean generateRun(Series s, int run) {
 		System.out.println("\n" + run + ":");
 		ArrayList<Single> runtimes = new ArrayList<Single>();
+		ArrayList<Single> etc = new ArrayList<Single>();
 		File folder = new File(s.getSeriesFolderRun(run));
 		if (folder.exists() && Config.getBoolean("SKIP_EXISTING_DATA_FOLDERS")) {
 			System.out.println("skipping");
+			if (s.getNetwork() instanceof ReadableFolder) {
+				((ReadableFolder) s.getNetwork()).incIndex();
+			}
 			return true;
 		}
 		Timer timer = new Timer("G: " + s.getNetwork().getDescriptionShort());
 		Graph g = s.getNetwork().generate();
 		timer.end();
-		runtimes.add(new Single("G", timer.getRuntime()));
+		runtimes.add(new Single("G_RUNTIME", timer.getRuntime()));
 		if (s.getNetwork().getTransformations() != null) {
 			for (Transformation t : s.getNetwork().getTransformations()) {
 				if (t.applicable(g)) {
@@ -220,7 +274,7 @@ public class Series {
 						g = t.transform(g);
 					}
 					timer.end();
-					runtimes.add(new Single(t.getFolderName(), timer
+					runtimes.add(new Single(t.getRuntimeSingleName(), timer
 							.getRuntime()));
 				} else {
 					System.out.println("T: " + t.getDescriptionShort()
@@ -261,15 +315,25 @@ public class Series {
 			timer = new Timer("M: " + m.getDescriptionShort());
 			m.computeData(g, s.getNetwork(), metrics);
 			timer.end();
-			runtimes.add(new Single(m.getFolderName(), timer.getRuntime()));
+			runtimes.add(new Single(m.getRuntimeSingleName(), timer
+					.getRuntime()));
 			m.writeData(s.getMetricFolder(run, m));
 			SingleList singleList = new SingleList(m, m.getSingles());
 			singleList.write(s.getSinglesFilenameRun(run, m));
 			metrics.put(m.getKey(), m);
 			metrics.put(m.getFolder(), m);
 		}
+
 		SingleList rt = new SingleList(null, runtimes);
 		rt.write(s.getRuntimesFilenameRun(run));
+
+		int mb = 1024 * 1024;
+		Runtime runtime = Runtime.getRuntime();
+		double used = (runtime.totalMemory() - runtime.freeMemory()) / mb;
+		etc.add(new Single("MEMORY_USED", used));
+		SingleList etcSl = new SingleList(null, etc);
+		etcSl.write(s.getEtcFilename(run));
+
 		return true;
 	}
 

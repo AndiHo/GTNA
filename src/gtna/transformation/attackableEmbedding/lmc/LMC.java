@@ -38,7 +38,7 @@ package gtna.transformation.attackableEmbedding.lmc;
 import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
 import gtna.graph.Node;
-import gtna.id.DIdentifierSpace;
+import gtna.id.DoubleIdentifierSpace;
 import gtna.id.ring.RingIdentifier;
 import gtna.transformation.attackableEmbedding.AttackableEmbedding;
 import gtna.transformation.attackableEmbedding.AttackableEmbeddingNode;
@@ -211,11 +211,11 @@ public class LMC extends AttackableEmbedding {
 	public void initIds(Graph g) {
 		GraphProperty[] gp = g.getProperties("ID_SPACE");
 		GraphProperty p = gp[gp.length - 1];
-		DIdentifierSpace idSpaceD = (DIdentifierSpace) p;
+		DoubleIdentifierSpace idSpaceD = (DoubleIdentifierSpace) p;
 		this.ids = new RingIdentifier[g.getNodes().length];
 		for (int i = 0; i < ids.length; i++) {
 			ids[i] = (RingIdentifier) idSpaceD.getPartitions()[i]
-					.getRepresentativeID();
+					.getRepresentativeIdentifier();
 		}
 	}
 

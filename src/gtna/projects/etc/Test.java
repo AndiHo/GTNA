@@ -60,14 +60,14 @@ import gtna.networks.model.placementmodels.connectors.UDGConnector;
 import gtna.networks.model.placementmodels.models.CommunityPlacementModel;
 import gtna.networks.model.placementmodels.partitioners.SimplePartitioner;
 import gtna.networks.util.DescriptionWrapper;
-import gtna.plot.Data.Type;
+import gtna.plot.data.Data.Type;
 import gtna.plot.Gnuplot.Style;
 import gtna.plot.Plotting;
 import gtna.transformation.Transformation;
 import gtna.transformation.attackableEmbedding.lmc.LMC;
+import gtna.transformation.communities.CDDeltaQ;
+import gtna.transformation.communities.CDLPA;
 import gtna.transformation.communities.CommunityColors;
-import gtna.transformation.communities.CommunityDetectionDeltaQ;
-import gtna.transformation.communities.CommunityDetectionLPA;
 import gtna.transformation.communities.GuimeraRolesTransformation;
 import gtna.transformation.communities.WsnRolesTransformation;
 import gtna.transformation.id.RandomRingIDSpaceSimple;
@@ -163,8 +163,9 @@ public class Test {
 		Network nw = new ErdosRenyi(200, 10, true, new Transformation[] {
 				new WeakConnectivityPartition(),
 				new LargestWeaklyConnectedComponent(),
-				new RandomRingIDSpaceSimple(), new RandomRingIDSpaceSimple(),
-				new RandomRingIDSpaceSimple() });
+				new RandomRingIDSpaceSimple(true),
+				new RandomRingIDSpaceSimple(true),
+				new RandomRingIDSpaceSimple(true) });
 		Series s = Series.generate(nw, metrics, times);
 	}
 
@@ -228,8 +229,8 @@ public class Test {
 		int times = 5;
 		int nodes = 4000;
 
-		Transformation t_lpa = new CommunityDetectionLPA(50);
-		Transformation t_dq = new CommunityDetectionDeltaQ();
+		Transformation t_lpa = new CDLPA(50);
+		Transformation t_dq = new CDDeltaQ();
 		Transformation t_cc = new CommunityColors();
 		Transformation t_r = new GuimeraRolesTransformation();
 		Transformation t_r2 = new WsnRolesTransformation();

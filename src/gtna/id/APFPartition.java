@@ -36,12 +36,49 @@
 package gtna.id;
 
 
+import java.math.BigInteger;
+
 import org.apfloat.Apfloat;
 
 /**
  * @author andreas
  * 
  */
-public interface APFPartition extends Partition<Apfloat> {
+public abstract class APFPartition extends Partition {
+	/**
+	* @param id
+	* @return distance from this partition to the identifier $id
+	*/
+	public abstract Apfloat distance(APFIdentifier id);
 	
+	/**
+	* @param p
+	* @return distance from this partition to the partition $p
+	*/
+	public abstract Apfloat distance(APFPartition p);
+	
+	@Override
+	public boolean isCloser(Identifier to, Identifier than) {
+		return this.distance((APFIdentifier) to).compareTo(
+				this.distance((APFIdentifier) than)) <= 0;
+	}
+	
+	@Override
+	public int getClosestNode(int[] nodes, Partition[] partitions) {
+		if (nodes.length <= 0) {
+			return -1;
+		}
+		int closest = nodes[0];
+		Apfloat distance = ((APFPartition) partitions[closest])
+				.distance(this);
+	
+		for (int i = 1; i < nodes.length; i++) {
+			Apfloat d = ((APFPartition) partitions[nodes[i]]).distance(this);
+			if (d.compareTo(distance) < 0) {
+				closest = nodes[i];
+				distance = d;
+			}
+		}
+		return closest;
+	}
 }

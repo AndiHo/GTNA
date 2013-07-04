@@ -37,7 +37,8 @@ package gtna.transformation.attackableEmbedding.IQD;
 
 import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
-import gtna.id.DIdentifierSpace;
+import gtna.id.DoubleIdentifierSpace;
+import gtna.id.DoublePartition;
 import gtna.id.Partition;
 import gtna.id.ring.RingIdentifier;
 import gtna.id.ring.RingIdentifierSpace.Distance;
@@ -55,7 +56,7 @@ import gtna.util.parameter.StringParameter;
 
 import java.util.Random;
 
-/**
+/**h
  * @author stef 1D-embedding in three phases: identifier choice, quality
  *         evaluation, decision
  * 
@@ -96,7 +97,25 @@ public abstract class IQDEmbedding extends AttackableEmbedding {
 	 * @param adjustOne
 	 *            : adjust nodes of degree 1 to neighbor
 	 * @param parameters
+	 * @add: are the parameters added to the others in the description, or
+	 *       should the description only contain those
+	 * 
 	 */
+	public IQDEmbedding(int iterations, String key, IdentifierMethod idMethod,
+			DecisionMethod deMethod, Distance distance, double epsilon,
+			boolean checkold, boolean adjustOne, Parameter[] parameters,
+			boolean add) {
+		super(iterations, key, add ? combineParameter(iterations, idMethod,
+				deMethod, distance, epsilon, checkold, adjustOne, parameters)
+				: parameters);
+		this.idMethod = idMethod;
+		this.deMethod = deMethod;
+		this.distance = distance;
+		this.epsilon = epsilon;
+		this.checkold = checkold;
+		this.adjustOneDegree = adjustOne;
+	}
+
 	public IQDEmbedding(int iterations, String key, IdentifierMethod idMethod,
 			DecisionMethod deMethod, Distance distance, double epsilon,
 			boolean checkold, boolean adjustOne, Parameter[] parameters) {
@@ -204,7 +223,7 @@ public abstract class IQDEmbedding extends AttackableEmbedding {
 	public Graph transform(Graph g) {
 		// get or create ID space
 		GraphProperty[] prop = g.getProperties("ID_SPACE");
-		DIdentifierSpace idSpace;
+		DoubleIdentifierSpace idSpace;
 		int k = -1;
 		for (int i = 0; i < prop.length; i++) {
 			if (prop[i] instanceof RingIdentifierSpaceSimple) {
@@ -212,12 +231,12 @@ public abstract class IQDEmbedding extends AttackableEmbedding {
 			}
 		}
 		if (k == -1) {
-			Transformation idTrans = new RandomRingIDSpaceSimple();
+			Transformation idTrans = new RandomRingIDSpaceSimple(true);
 			g = idTrans.transform(g);
 			prop = g.getProperties("ID_SPACE");
 			k = prop.length - 1;
 		}
-		idSpace = (DIdentifierSpace) prop[k];
+		idSpace = (DoubleIdentifierSpace) prop[k];
 		this.setIdspace(idSpace);
 
 		// initialize
@@ -260,7 +279,7 @@ public abstract class IQDEmbedding extends AttackableEmbedding {
 		for (int i = 0; i < ids.length; i++) {
 			ids[i].setPosition(((IQDNode) nodes[i]).getID());
 		}
-		Partition<Double>[] parts = new RingPartitionSimple[g.getNodes().length];
+		DoublePartition[] parts = new RingPartitionSimple[g.getNodes().length];
 		for (int i = 0; i < parts.length; i++) {
 			parts[i] = new RingPartitionSimple(ids[i]);
 		}
@@ -303,11 +322,11 @@ public abstract class IQDEmbedding extends AttackableEmbedding {
 	 * @param g
 	 */
 	public void initIds() {
-		DIdentifierSpace idSpaceD = this.getIdspace();
+		DoubleIdentifierSpace idSpaceD = this.getIdspace();
 		this.ids = new RingIdentifier[idSpaceD.getPartitions().length];
 		for (int i = 0; i < ids.length; i++) {
 			ids[i] = (RingIdentifier) idSpaceD.getPartitions()[i]
-					.getRepresentativeID();
+					.getRepresentativeIdentifier();
 		}
 	}
 

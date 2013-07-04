@@ -50,98 +50,45 @@ import java.util.Random;
  * @author Andreas Höfer
  *
  */
-public class MaxNormSIdentiferSpaceSimple implements SIdentifierSpace {
+public class MaxNormSIdentiferSpaceSimple extends SIdentifierSpace {
 
-	private MaxNormSPartitionSimple[] partitions; 
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#getPartitions()
+	/**
+	 * @param partitions
 	 */
-	@Override
-	public SPartition[] getPartitions() {
-		return partitions;
+	public MaxNormSIdentiferSpaceSimple(Partition[] partitions) {
+		super(partitions);
 	}
 
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#setPartitions(gtna.id.Partition<Type>[])
-	 */
-	@Override
-	public void setPartitions(Partition<Short>[] partitions) {
-		this.partitions =(MaxNormSPartitionSimple[]) partitions;  
-	}
-
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#randomID(java.util.Random)
-	 */
-	@Override
-	public Identifier<Short> randomID(Random rand) {
-		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeID();
-	}
-
+	
 	/* (non-Javadoc)
 	 * @see gtna.id.IdentifierSpace#getMaxDistance()
 	 */
 	@Override
-	public Short getMaxDistance() {
+	public short getMaxDistance() {
 		return Short.MAX_VALUE;
 	}
 
+	
 	/* (non-Javadoc)
-	 * @see gtna.graph.GraphProperty#write(java.lang.String, java.lang.String)
+	 * @see gtna.id.IdentifierSpace#writeParameters(gtna.io.Filewriter)
 	 */
 	@Override
-	public boolean write(String filename, String key) {
-	Filewriter fw = new Filewriter(filename);
-		
-		// CLASS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
-		fw.writeln(this.getClass().getCanonicalName().toString());
-
-		// KEY
-		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
-		fw.writeln(key);
-		
-		// # PARTITIONS
-		fw.writeComment("Partitions");
-		fw.writeln(this.partitions.length);
-
-		fw.writeln();
-
-		// PARTITIONS
-		int index = 0;
-		for (MaxNormSPartitionSimple p : this.partitions) {
-			fw.writeln(index++ + ":" + p.toString());
-		}
-
-		return fw.close();
+	protected void writeParameters(Filewriter fw) {
 	}
 
 	/* (non-Javadoc)
-	 * @see gtna.graph.GraphProperty#read(java.lang.String, gtna.graph.Graph)
+	 * @see gtna.id.IdentifierSpace#readParameters(gtna.io.Filereader)
 	 */
 	@Override
-	public void read(String filename, Graph graph) {
-		Filereader fr = new Filereader(filename);
+	protected void readParameters(Filereader fr) {	
+	}
 
-		// CLASS
-		fr.readLine();
-
-		// KEY
-		String key = fr.readLine();
-
-		// # PARTITIONS
-		int partitions = Integer.parseInt(fr.readLine());
-		this.partitions = new MaxNormSPartitionSimple[partitions];
-
-		// PARTITIONS
-		String line = null;
-		while ((line = fr.readLine()) != null) {
-			String[] temp = line.split(":");
-			int index = Integer.parseInt(temp[0]);
-			this.partitions[index] = new MaxNormSPartitionSimple(new MaxNormSIdentifier(temp[1]));
-		}
-
-		fr.close();
-		graph.addProperty(key, this);	
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#getRandomIdentifier(java.util.Random)
+	 */
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeIdentifier();
 	}
 
 }

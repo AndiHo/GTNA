@@ -35,15 +35,18 @@
  */
 package gtna.id.maxnorm;
 
-import gtna.id.SPartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
+import gtna.id.SIdentifier;
+import gtna.id.SPartition;
+
+import java.util.Random;
 
 /**
  * @author Andreas Höfer
  *
  */
-public class MaxNormSPartitionSimple implements SPartition {
+public class MaxNormSPartitionSimple extends SPartition {
 
 	private MaxNormSIdentifier id;
 	
@@ -55,35 +58,58 @@ public class MaxNormSPartitionSimple implements SPartition {
 	 * @see gtna.id.Partition#distance(gtna.id.Identifier)
 	 */
 	@Override
-	public Short distance(Identifier<Short> id) {
+	public short distance(SIdentifier id) {
 		return this.id.distance(id);
 	}
 
 	/* (non-Javadoc)
-	 * @see gtna.id.Partition#equals(gtna.id.Partition)
+	 * @see gtna.id.SPartition#distance(gtna.id.SPartition)
 	 */
 	@Override
-	public boolean equals(Partition<Short> p) {
-		return this.id.equals((MaxNormSIdentifier) p.getRepresentativeID());
+	public short distance(SPartition p) {
+		return this.id.distance((SIdentifier) p.getRepresentativeIdentifier());
+	}
+	
+	public String toString() {
+		return this.id.toString();
+	}	
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#asString()
+	 */
+	@Override
+	public String asString() {
+		return this.id.toString();
 	}
 
 	/* (non-Javadoc)
 	 * @see gtna.id.Partition#contains(gtna.id.Identifier)
 	 */
 	@Override
-	public boolean contains(Identifier<Short> id) {
+	public boolean contains(Identifier id) {
 		return this.id.equals(id);
 	}
 
 	/* (non-Javadoc)
-	 * @see gtna.id.Partition#getRepresentativeID()
+	 * @see gtna.id.Partition#getRepresentativeIdentifier()
 	 */
 	@Override
-	public Identifier<Short> getRepresentativeID() {
+	public Identifier getRepresentativeIdentifier() {
 		return this.id;
 	}
 
-	public String toString() {
-		return this.id.toString();
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#getRandomIdentifier(java.util.Random)
+	 */
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return new MaxNormSIdentifier(id);
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#equals(gtna.id.Partition)
+	 */
+	@Override
+	public boolean equals(Partition p) {
+		return this.id.equals((MaxNormSIdentifier) p.getRepresentativeIdentifier());
 	}
 }

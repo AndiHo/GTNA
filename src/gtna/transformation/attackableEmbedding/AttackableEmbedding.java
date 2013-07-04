@@ -42,8 +42,8 @@ import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
 import gtna.graph.Node;
 import gtna.graph.sorting.NodeSorting;
-import gtna.id.DIdentifierSpace;
-import gtna.id.Partition;
+import gtna.id.DoubleIdentifierSpace;
+import gtna.id.DoublePartition;
 import gtna.id.ring.RingIdentifier;
 import gtna.id.ring.RingPartitionSimple;
 import gtna.transformation.Transformation;
@@ -63,7 +63,7 @@ import java.util.Random;
 public abstract class AttackableEmbedding extends Transformation {
 
 	protected int iterations;
-	private DIdentifierSpace idspace;
+	private DoubleIdentifierSpace idspace;
 
 	/**
 	 * @param key
@@ -88,7 +88,7 @@ public abstract class AttackableEmbedding extends Transformation {
 				nodes, rand);
 		g.setNodes(nodes);
 		GraphProperty[] prop = g.getProperties("ID_SPACE");
-		DIdentifierSpace idSpace = (DIdentifierSpace) prop[prop.length - 1];
+		DoubleIdentifierSpace idSpace = (DoubleIdentifierSpace) prop[prop.length - 1];
 		// Partition<Double>[] ids = idSpace.getPartitions();
 		this.setIdspace(idSpace);
 		RingIdentifier[] ids = this.getIds();
@@ -101,7 +101,7 @@ public abstract class AttackableEmbedding extends Transformation {
 				selectionSet[index].turn(rand);
 			}
 		}
-		Partition<Double>[] parts = new RingPartitionSimple[g.getNodes().length];
+		DoublePartition[] parts = new RingPartitionSimple[g.getNodes().length];
 
 		for (int i = 0; i < parts.length; i++) {
 			parts[i] = new RingPartitionSimple(ids[i]);
@@ -300,7 +300,7 @@ public abstract class AttackableEmbedding extends Transformation {
 	/**
 	 * @return the idspace
 	 */
-	public DIdentifierSpace getIdspace() {
+	public DoubleIdentifierSpace getIdspace() {
 		return this.idspace;
 	}
 
@@ -308,7 +308,7 @@ public abstract class AttackableEmbedding extends Transformation {
 	 * @param idspace
 	 *            the idspace to set
 	 */
-	public void setIdspace(DIdentifierSpace idspace) {
+	public void setIdspace(DoubleIdentifierSpace idspace) {
 		this.idspace = idspace;
 	}
 

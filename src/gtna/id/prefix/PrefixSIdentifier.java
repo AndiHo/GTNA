@@ -42,7 +42,7 @@ import gtna.id.Identifier;
  * @author Andreas Höfer
  *
  */
-public class PrefixSIdentifier implements Identifier<Integer> {
+public class PrefixSIdentifier extends SIdentifier {
 
 	private short[] pos;
 	private boolean set = true;
@@ -92,11 +92,21 @@ public class PrefixSIdentifier implements Identifier<Integer> {
 		}
 	}
 	
+	/**
+	 * @param id
+	 * 
+	 * Copy constructor
+	 */
+	public PrefixSIdentifier(PrefixSIdentifier id) {
+		this.pos = id.pos.clone();
+		this.set = id.set;
+	}
+
 	/* (non-Javadoc)
 	 * @see gtna.id.Identifier#distance(gtna.id.Identifier)
 	 */
 	@Override
-	public Integer distance(Identifier<Integer> id) {
+	public short distance(SIdentifier id) {
 		short[] otherpos = ((PrefixSIdentifier) id).pos;
 		if (!this.set || !(((PrefixSIdentifier) id).set)){
 			return Short.MAX_VALUE;
@@ -111,14 +121,14 @@ public class PrefixSIdentifier implements Identifier<Integer> {
 				break;			
 		}
 		// dist = |pos| + |otherpos| - 2 commonprefix
-		return (pos.length + otherpos.length - 2 * commonprefix);
+		return (short) (pos.length + otherpos.length - 2 * commonprefix);
 	}
 
 	/* (non-Javadoc)
 	 * @see gtna.id.Identifier#equals(gtna.id.Identifier)
 	 */
 	@Override
-	public boolean equals(Identifier<Integer> id) {
+	public boolean equals(Identifier id) {
 		short[] otherpos = ((PrefixSIdentifier) id).pos;
 		if (pos.length != otherpos.length)
 			return false;
@@ -135,5 +145,15 @@ public class PrefixSIdentifier implements Identifier<Integer> {
 	public void setSet(boolean set) {
 		this.set = set;
 	}
+
 	
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Identifier#asString()
+	 */
+	@Override
+	public String asString() {
+		return this.toString();
+	}
+
 }

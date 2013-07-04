@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="gtna/projects/communityEmbeddings/|gtna/projects/etc/|gtna/projects/id/|gtna/routing/greedyVariations/DepthFirstGreedyNoInfo.java|gtna/routing/greedyVariations/DepthFirstGreedyNoInfoNoDegreeOne.java|gtna/transformation/attackableEmbedding/|gtna/transformation/embedding/communities/" kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/apfloat.jar"/>
 	<classpathentry kind="lib" path="lib/samples.jar"/>
 	<classpathentry kind="lib" path="lib/gephi-toolkit.jar"/>

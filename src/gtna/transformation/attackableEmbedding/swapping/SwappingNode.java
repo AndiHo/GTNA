@@ -94,6 +94,7 @@ public class SwappingNode extends AttackableEmbeddingNode {
 	
 	 // case a) determine if nodes should swap
 	 if (ttl - 1 <= 0) {
+			
 	 // calculate coefficient
 	 double before = 1;
 	 double after = 1;

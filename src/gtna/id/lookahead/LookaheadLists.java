@@ -35,12 +35,10 @@
  */
 package gtna.id.lookahead;
 
-import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
-import gtna.id.DIdentifier;
+import gtna.id.DoublePartition;
 import gtna.io.Filereader;
 import gtna.io.Filewriter;
-import gtna.util.Config;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -49,7 +47,7 @@ import java.util.ArrayList;
  * @author benni
  * 
  */
-public class LookaheadLists implements GraphProperty {
+public class LookaheadLists extends GraphProperty {
 	private LookaheadList[] lists;
 
 	public LookaheadLists() {
@@ -82,34 +80,12 @@ public class LookaheadLists implements GraphProperty {
 	public boolean write(String filename, String key) {
 		Filewriter fw = new Filewriter(filename);
 
-		// CLASS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
-		fw.writeln(this.getClass().getCanonicalName().toString());
+		this.writeHeader(fw, this.getClass(), key);
 
-		// KEYS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
-		fw.writeln(key);
+		this.writeParameter(fw, "Lists", this.lists.length);
+		this.writeParameter(fw, "Partition class", this.lists[0].getList()[0]
+				.getPartition().getClass());
 
-		// # OF LISTS
-		fw.writeComment("Lists");
-		fw.writeln(this.lists.length);
-
-		// CLASS OF PARTITIONS
-		fw.writeComment("PARTITION Class");
-		for (LookaheadList list : this.lists) {
-			if (list.size() > 0) {
-				fw.writeln(list.getList()[0].getPartition().getClass()
-						.getCanonicalName().toString());
-				break;
-			}
-			if (list.getIndex() == this.lists.length - 1) {
-				fw.writeln("NULL");
-			}
-		}
-
-		fw.writeln();
-
-		// LIST OF LISTS
 		for (LookaheadList list : this.lists) {
 			fw.writeln(list.toString());
 		}
@@ -119,33 +95,23 @@ public class LookaheadLists implements GraphProperty {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void read(String filename, Graph graph) {
+	public String read(String filename) {
 		Filereader fr = new Filereader(filename);
 
-		// CLASS
-		fr.readLine();
+		String key = this.readHeader(fr);
 
-		// KEYS
-		String key = fr.readLine();
+		this.lists = new LookaheadList[this.readInt(fr)];
+		Class<?> partitionClass = this.readClass(fr);
 
-		// # OF LISTS
-		int lists = Integer.parseInt(fr.readLine());
-		this.lists = new LookaheadList[lists];
-
-		// CLASS OF IDS
-		String idClassname = fr.readLine();
-		Constructor<DIdentifier>[] constructors = null;
+		Constructor<DoublePartition>[] constructors = null;
 		try {
-			constructors = (Constructor<DIdentifier>[]) ClassLoader
-					.getSystemClassLoader().loadClass(idClassname)
+			constructors = (Constructor<DoublePartition>[]) partitionClass
 					.getConstructors();
 		} catch (SecurityException e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		}
-		Constructor<DIdentifier> constructor = null;
-		for (Constructor<DIdentifier> c : constructors) {
+		Constructor<DoublePartition> constructor = null;
+		for (Constructor<DoublePartition> c : constructors) {
 			if (c.getParameterTypes().length == 1
 					&& c.getParameterTypes()[0].toString().equals(
 							"class java.lang.String")) {
@@ -154,7 +120,6 @@ public class LookaheadLists implements GraphProperty {
 			}
 		}
 
-		// LISTS
 		String line = null;
 		int index = 0;
 		while ((line = fr.readLine()) != null) {
@@ -164,6 +129,6 @@ public class LookaheadLists implements GraphProperty {
 
 		fr.close();
 
-		graph.addProperty(key, this);
+		return key;
 	}
 }

@@ -35,120 +35,49 @@
  */
 package gtna.id.hyperbolic;
 
-import gtna.graph.Graph;
-import gtna.id.APFIdentifierSpace;
 import gtna.id.APFPartition;
 import gtna.id.Identifier;
+import gtna.id.IdentifierSpace;
 import gtna.id.Partition;
 import gtna.io.Filereader;
 import gtna.io.Filewriter;
-import gtna.util.Config;
 
 import java.util.Random;
-
-import org.apfloat.Apfloat;
 
 /**
  * @author Andreas Höfer
  *
  */
-public class Hyperbolic2DIdentifierSpaceSimple implements APFIdentifierSpace {
+public class Hyperbolic2DIdentifierSpaceSimple extends IdentifierSpace {
 
-	private Hyperbolic2DPartitionSimple[] partitions; 
-	
-	/* 
-	 * @see gtna.id.IdentifierSpace#getPartitions()
+	/**
+	 * @param partitions
 	 */
-	@Override
-	public APFPartition[] getPartitions() {
-		return partitions;
+	public Hyperbolic2DIdentifierSpaceSimple(Partition[] partitions) {
+		super(partitions);
+		// TODO Auto-generated constructor stub
 	}
 
-	/* 
-	 * @see gtna.id.IdentifierSpace#setPartitions(gtna.id.Partition<Type>[])
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#writeParameters(gtna.io.Filewriter)
 	 */
 	@Override
-	public void setPartitions(Partition<Apfloat>[] partitions) {
-		this.partitions = (Hyperbolic2DPartitionSimple[]) partitions;
+	protected void writeParameters(Filewriter fw) {
 	}
 
-	/* 
-	 * @see gtna.id.IdentifierSpace#randomID(java.util.Random)
-	 * Only return existing IDs as it is simple
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#readParameters(gtna.io.Filereader)
 	 */
 	@Override
-	public Identifier<Apfloat> randomID(Random rand) {
-		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeID();
+	protected void readParameters(Filereader fr) {
 	}
 
-	/* 
-	 * @see gtna.id.IdentifierSpace#getMaxDistance()
-	 * As distance is not bounded there is no max distance
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#getRandomIdentifier(java.util.Random)
 	 */
 	@Override
-	public Apfloat getMaxDistance() {
-		throw new RuntimeException("Method not implemented as there is no meaningful max distance for Hyperbolic2DIdentifiers.");
-	}
-
-	/* 
-	 * @see gtna.graph.GraphProperty#write(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public boolean write(String filename, String key) {
-		Filewriter fw = new Filewriter(filename);
-		
-		// CLASS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
-		fw.writeln(this.getClass().getCanonicalName().toString());
-
-		// KEY
-		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
-		fw.writeln(key);
-		
-		// # PARTITIONS
-		fw.writeComment("Partitions");
-		fw.writeln(this.partitions.length);
-
-		fw.writeln();
-
-		// PARTITIONS
-		int index = 0;
-		for (Hyperbolic2DPartitionSimple p : this.partitions) {
-			fw.writeln(index++ + ":" + p.toString());
-		}
-
-		return fw.close();
-	}
-
-	/* 
-	 * @see gtna.graph.GraphProperty#read(java.lang.String, gtna.graph.Graph)
-	 */
-	@Override
-	public void read(String filename, Graph graph) {
-		Filereader fr = new Filereader(filename);
-
-		// CLASS
-		fr.readLine();
-
-		// KEY
-		String key = fr.readLine();
-
-		// # PARTITIONS
-		int partitions = Integer.parseInt(fr.readLine());
-		this.partitions = new Hyperbolic2DPartitionSimple[partitions];
-
-		// PARTITIONS
-		String line = null;
-		while ((line = fr.readLine()) != null) {
-			String[] temp = line.split(":");
-			int index = Integer.parseInt(temp[0]);
-			this.partitions[index] = new Hyperbolic2DPartitionSimple(new Hyperbolic2DIdentifier(temp[1]));
-		}
-
-		fr.close();
-
-		graph.addProperty(key, this);
-		
+	public Identifier getRandomIdentifier(Random rand) {
+		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeIdentifier();
 	}
 
 }

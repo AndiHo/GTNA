@@ -45,8 +45,6 @@ import gtna.id.md.MDPartitionSimple;
 import gtna.id.plane.PlaneIdentifier;
 import gtna.id.plane.PlanePartitionSimple;
 import gtna.id.ring.RingIdentifier;
-import gtna.id.ring.RingIdentifierSpace;
-import gtna.id.ring.RingIdentifierSpaceSimple;
 import gtna.id.ring.RingPartition;
 import gtna.id.ring.RingPartitionSimple;
 import gtna.util.Config;
@@ -81,11 +79,21 @@ public class Gephi {
 	private float ringRadius;
 
 	public void plot(Graph g, IdentifierSpace idSpace, String fileName) {
-		plot(g, null, idSpace, fileName);
+		plot(g, idSpace, null, fileName);
+	}
+
+	public void plot(Graph g, IdentifierSpace idSpace, NodeColors colors,
+			String fileName) {
+		plot(g, null, idSpace, colors, fileName);
 	}
 
 	public void plot(Graph g, GephiDecorator[] decorators,
 			IdentifierSpace idSpace, String fileName) {
+		plot(g, decorators, idSpace, null, fileName);
+	}
+
+	public void plot(Graph g, GephiDecorator[] decorators,
+			IdentifierSpace idSpace, NodeColors colors, String fileName) {
 		ringRadius = Config.getInt("GEPHI_RING_RADIUS");
 		boolean curvedFlag = Config.getBoolean("GEPHI_DRAW_CURVED_EDGES");
 		float edgeScale = Config.getFloat("GEPHI_EDGE_SCALE");
@@ -120,7 +128,7 @@ public class Gephi {
 			sD.init(g);
 		}
 		gephiNodes = new org.gephi.graph.api.Node[g.getNodes().length];
-		this.plotGraph(g, idSpace);
+		this.plotGraph(g, idSpace, colors);
 
 		ExportController ec = Lookup.getDefault()
 				.lookup(ExportController.class);
@@ -136,11 +144,13 @@ public class Gephi {
 		this.useSpanningTreeOnNextPlot = true;
 	}
 
-	private void plotGraph(Graph g, IdentifierSpace idSpace) {
+	private void plotGraph(Graph g, IdentifierSpace idSpace, NodeColors colors) {
 		Partition[] p = idSpace.getPartitions();
 		boolean showNode;
 
-		NodeColors colors = (NodeColors) g.getProperty("NODE_COLORS_0");
+		if (g.hasProperty("NODE_COLORS_0") && colors == null) {
+			colors = (NodeColors) g.getProperty("NODE_COLORS_0");
+		}
 
 		// First run: add all nodes
 		for (Node n : g.getNodes()) {
@@ -252,16 +262,15 @@ public class Gephi {
 
 	private ForceVector getPosition(Partition p) {
 		if (p instanceof PlanePartitionSimple) {
-			PlaneIdentifier temp = (PlaneIdentifier) p.getRepresentativeID();
+			PlaneIdentifier temp = (PlaneIdentifier) p
+					.getRepresentativeIdentifier();
 			return new ForceVector((float) temp.getX(), (float) temp.getY());
 		} else if (p instanceof RingPartition) {
 			// get the modulus for the ring
-			RingIdentifierSpace idSpace = ((RingPartition) p).getStart()
-					.getIdSpace();
-			double modulus = idSpace.getModulus();
+			double modulus = 1.0;
 
 			double positionOnRing = ((RingIdentifier) ((RingPartition) p)
-					.getRepresentativeID()).getPosition();
+					.getRepresentativeIdentifier()).getPosition();
 			double angle = (positionOnRing / modulus) * 360;
 
 			ForceVector pos = new ForceVector((float) Math.sin(Math
@@ -271,11 +280,9 @@ public class Gephi {
 		} else if (p instanceof RingPartitionSimple) {
 			RingPartitionSimple temp = (RingPartitionSimple) p;
 
-			RingIdentifierSpaceSimple idSpace = (RingIdentifierSpaceSimple) temp
-					.getId().getIdSpace();
-			double modulus = idSpace.getModulus();
+			double modulus = 1.0;
 
-			double posisitonOnRing = temp.getId().getPosition();
+			double posisitonOnRing = temp.getIdentifier().getPosition();
 			double angle = (posisitonOnRing / modulus) * 360;
 
 			ForceVector pos = new ForceVector((float) Math.sin(Math
@@ -284,10 +291,10 @@ public class Gephi {
 
 			return pos;
 		} else if (p instanceof MDPartitionSimple) {
-			MDIdentifier temp = (MDIdentifier) p.getRepresentativeID();
-			if (temp.getIdSpace().getDimensions() == 2) {
-				return new ForceVector((float) temp.getCoordinate(0),
-						(float) temp.getCoordinate(1));
+			MDIdentifier temp = (MDIdentifier) p.getRepresentativeIdentifier();
+			if (temp.getCoordinates().length == 2) {
+				return new ForceVector((float) temp.getCoordinates()[0],
+						(float) temp.getCoordinates()[1]);
 			} else
 				throw new RuntimeException(
 						"Cannot yet calculate a responsing coordinate for "

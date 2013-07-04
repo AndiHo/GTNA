@@ -41,5 +41,43 @@ import org.apfloat.Apfloat;
  * @author andreas
  * 
  */
-public interface APFIdentifier extends Identifier<Apfloat> {
+public abstract class APFIdentifier extends Identifier {
+	
+	/**
+	 * @param id
+	 * @return distance from this identifier to the identifier $id
+	 */
+	public abstract Apfloat distance(APFIdentifier id);
+
+	@Override
+	public boolean isCloser(Identifier to, Identifier than) {
+		return this.distance((APFIdentifier) to).compareTo(
+				this.distance((APFIdentifier) than)) <= 0;
+	}
+
+	@Override
+	public boolean isCloser(Partition to, Partition than) {
+		return ((APFPartition) to).distance(this).compareTo(
+				((APFPartition) than).distance(this)) <= 0;
+	}
+
+	@Override
+	public int getClosestNode(int[] nodes, Partition[] partitions) {
+		if (nodes.length <= 0) {
+			return -1;
+		}
+		int closest = nodes[0];
+		Apfloat distance = ((APFPartition) partitions[closest])
+				.distance(this);
+
+		for (int i = 1; i < nodes.length; i++) {
+			Apfloat d = ((APFPartition) partitions[nodes[i]]).distance(this);
+			if (d.compareTo(distance) < 0) {
+				closest = nodes[i];
+				distance = d;
+			}
+		}
+		return closest;
+	}
+	
 }

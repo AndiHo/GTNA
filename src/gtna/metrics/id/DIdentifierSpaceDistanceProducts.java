@@ -38,8 +38,9 @@ package gtna.metrics.id;
 import gtna.data.Single;
 import gtna.graph.Graph;
 import gtna.graph.Node;
-import gtna.id.DIdentifierSpace;
-import gtna.id.DPartition;
+import gtna.id.DoubleIdentifier;
+import gtna.id.DoubleIdentifierSpace;
+import gtna.id.DoublePartition;
 import gtna.id.Partition;
 import gtna.io.DataWriter;
 import gtna.metrics.Metric;
@@ -82,11 +83,11 @@ public class DIdentifierSpaceDistanceProducts extends Metric {
 
 	@Override
 	public void computeData(Graph g, Network n, HashMap<String, Metric> m) {
-		DIdentifierSpace ids = (DIdentifierSpace) g.getProperty("ID_SPACE_0");
-		Partition<Double>[] partitions = ids.getPartitions();
+		DoubleIdentifierSpace ids = (DoubleIdentifierSpace) g.getProperty("ID_SPACE_0");
+		Partition[] partitions = ids.getPartitions();
 
 		double maxDist = ids.getMaxDistance();
-		double step = 1.0 / (double) this.bins;
+		// double step = 1.0 / (double) this.bins;
 
 		double[] prod = this.computeNeighborDistanceProducts(g.getNodes(),
 				partitions, maxDist);
@@ -109,17 +110,19 @@ public class DIdentifierSpaceDistanceProducts extends Metric {
 	}
 
 	private double[] computeNeighborDistanceProducts(Node[] nodes,
-			Partition<Double>[] partitions, double maxDist) {
+			Partition[] partitions, double maxDist) {
 		double[] prod = new double[nodes.length];
 
 		for (Node node : nodes) {
-			DPartition p = (DPartition) partitions[node.getIndex()];
+			DoublePartition p = (DoublePartition) partitions[node.getIndex()];
 			if (node.getOutDegree() > 0) {
 				prod[node.getIndex()] = 1;
 			}
 			for (int out : node.getOutgoingEdges()) {
-				prod[node.getIndex()] *= p.distance(partitions[out]
-						.getRepresentativeID()) / maxDist;
+				prod[node.getIndex()] *= ((DoublePartition) p)
+						.distance((DoubleIdentifier) partitions[out]
+								.getRepresentativeIdentifier())
+						/ maxDist;
 			}
 		}
 
@@ -160,7 +163,7 @@ public class DIdentifierSpaceDistanceProducts extends Metric {
 	@Override
 	public boolean applicable(Graph g, Network n, HashMap<String, Metric> m) {
 		return g.hasProperty("ID_SPACE_0")
-				&& (g.getProperty("ID_SPACE_0") instanceof DIdentifierSpace);
+				&& (g.getProperty("ID_SPACE_0") instanceof DoubleIdentifierSpace);
 	}
 
 }

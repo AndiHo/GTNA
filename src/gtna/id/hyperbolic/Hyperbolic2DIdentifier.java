@@ -48,7 +48,7 @@ import gtna.id.Identifier;
  * @author Andreas Höfer
  *
  */
-public class Hyperbolic2DIdentifier implements APFIdentifier{
+public class Hyperbolic2DIdentifier extends APFIdentifier{
 
 	private Apcomplex pos;
 
@@ -60,13 +60,21 @@ public class Hyperbolic2DIdentifier implements APFIdentifier{
 		this.pos = new Apcomplex(pos);
 	}
 	
+	/**
+	 * @param id
+	 * 
+	 * copy constructor
+	 */
+	public Hyperbolic2DIdentifier(Hyperbolic2DIdentifier id) {
+		pos = new Apcomplex(id.pos.real(), id.pos.imag());
+	}
 
 	/* 
 	 * Implement hyperbolic distance function of the poincare model
 	 * @see gtna.id.Identifier#distance(gtna.id.Identifier)
 	 */
 	@Override
-	public Apfloat distance(Identifier<Apfloat> id) {
+	public Apfloat distance(APFIdentifier id) {
 		
 		Apcomplex otherpos =  ((Hyperbolic2DIdentifier) id).pos; 
 		
@@ -109,15 +117,23 @@ public class Hyperbolic2DIdentifier implements APFIdentifier{
 		
 	}
 
+	public String toString(){
+		return pos.toString();
+	}
+	
+	/* (non-Javadoc)
+	 * @see gtna.id.Identifier#asString()
+	 */
+	@Override
+	public String asString() {
+		return pos.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see gtna.id.Identifier#equals(gtna.id.Identifier)
 	 */
 	@Override
-	public boolean equals(Identifier<Apfloat> id) {
+	public boolean equals(Identifier id) {
 		return pos.equals(((Hyperbolic2DIdentifier) id).pos);
-	}
-
-	public String toString(){
-		return pos.toString();
-	}
+	}	
 }

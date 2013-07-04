@@ -36,39 +36,21 @@
 package gtna.routing.greedy;
 
 import gtna.graph.Graph;
-import gtna.graph.GraphProperty;
 import gtna.graph.Node;
 import gtna.graph.spanningTree.SpanningTree;
-import gtna.id.APFIdentifier;
-import gtna.id.APFIdentifierSpace;
-import gtna.id.APFPartition;
-import gtna.id.BIIdentifier;
-import gtna.id.BIIdentifierSpace;
-import gtna.id.BIPartition;
-import gtna.id.DIdentifier;
-import gtna.id.DIdentifierSpace;
-import gtna.id.DPartition;
-import gtna.id.SIdentifier;
-import gtna.id.SIdentifierSpace;
-import gtna.id.SPartition;
+import gtna.id.Identifier;
 import gtna.id.prefix.PrefixSIdentiferSpaceSimple;
-import gtna.id.prefix.PrefixSIdentifier;
-import gtna.id.prefix.PrefixSPartitionSimple;
 import gtna.routing.Route;
-import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
 import gtna.util.parameter.IntParameter;
 import gtna.util.parameter.Parameter;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.apfloat.Apfloat;
-
 /**
  * @author Andreas Höfer, Stefanie Roos
- * Simple Extension of Greedy Routing for Virtula Tree Prefix Embedding:
+ * Simple Extension of Greedy Routing for Virtual Tree Prefix Embedding:
  * In case of a local minimum forward the message to the parent in the tree  
  */
 
@@ -76,10 +58,7 @@ public class GreedyTree extends RoutingAlgorithm {
 
 	boolean debug = true;
 
-	private PrefixSIdentiferSpaceSimple idSpacePE;
-	private PrefixSPartitionSimple[] pPE;
 	private SpanningTree st;
-	
 	private int ttl;
 
 	public GreedyTree() {
@@ -93,16 +72,42 @@ public class GreedyTree extends RoutingAlgorithm {
 	}
 
 	@Override
-	public Route routeToRandomTarget(Graph graph, int start, Random rand) {
-		if (this.idSpacePE != null) {
-			return this.routeToRandomTargetPE(graph, start, rand);
-		}else {			
-			return null;
-		}
-	
+	public Route routeToTarget(Graph graph, int start, Identifier target,
+			Random rand) {
+		this.st = (SpanningTree) graph.getProperty("SPANNINGTREE"); 
+		return this.route(new ArrayList<Integer>(), start, target, rand,
+				graph.getNodes());
 	}
+	
+	private Route route(ArrayList<Integer> route, int current,
+			Identifier target, Random rand, Node[] nodes) {
+		route.add(current);
+		
+		if (this.isEndPoint(current, target)) {
+			return new Route(route, true);
+		}
+		if (route.size() > this.ttl) {
+			return new Route(route, false);
+		}
 
-	private Route routeToRandomTargetPE(Graph graph, int start, Random rand) {
+		int closest = target.getClosestNode(nodes[current].getOutgoingEdges(),
+				this.identifierSpace.getPartitions());
+		if (!target.isCloser(this.identifierSpace.getPartition(closest), this.identifierSpace.getPartition(current))) {
+			// if the routing gets stuck, go to the parent
+			closest = st.getParent(current);
+			// if there is no parent the routing fails
+			if (closest == -1)
+				return new Route(route, false);
+		}
+
+		return this.route(route, closest, target, rand, nodes);
+	}
+	
+	
+	
+	
+
+/*	private Route routeToRandomTargetPE(Graph graph, int start, Random rand) {
 		if (!((PrefixSIdentifier)this.pPE[start].getRepresentativeID()).isSet()){
 			return new RouteImpl(new ArrayList<Integer>(), false);
 		}
@@ -142,19 +147,13 @@ public class GreedyTree extends RoutingAlgorithm {
 				return new RouteImpl(route, false);
 		}
 		return this.routePE(route, minNode, target, rand, nodes);
-	}
+	}*/
 	
 	
 	@Override
 	public boolean applicable(Graph graph) {
-		return graph.hasProperty("ID_SPACE_0") && (graph.getProperty("ID_SPACE_0") instanceof PrefixSIdentiferSpaceSimple) && graph.hasProperty("SPANNINGTREE"); 
+		return graph.hasProperty("ID_SPACE_0", PrefixSIdentiferSpaceSimple.class) && graph.hasProperty("SPANNINGTREE");
+		// return graph.hasProperty("ID_SPACE_0") && (graph.getProperty("ID_SPACE_0") instanceof PrefixSIdentiferSpaceSimple) && graph.hasProperty("SPANNINGTREE"); 
 	}
 
-	@Override
-	public void preprocess(Graph graph) {
-		GraphProperty p = graph.getProperty("ID_SPACE_0");
-		this.idSpacePE = (PrefixSIdentiferSpaceSimple) p;
-		this.pPE = (PrefixSPartitionSimple[]) this.idSpacePE.getPartitions();
-		this.st = (SpanningTree) graph.getProperty("SPANNINGTREE"); 
-	}
 }

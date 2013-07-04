@@ -35,52 +35,62 @@
  */
 package gtna.id.plane;
 
-import gtna.id.DIdentifier;
-import gtna.id.DPartition;
+import gtna.id.DoubleIdentifier;
+import gtna.id.DoublePartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
+
+import java.util.Random;
 
 /**
  * @author benni
  * 
  */
-public class PlanePartitionSimple implements DPartition {
-	private PlaneIdentifier id;
+public class PlanePartitionSimple extends DoublePartition {
 
-	public PlanePartitionSimple(PlaneIdentifier id) {
-		this.id = id;
-	}
+	protected PlaneIdentifier id;
 
-	public PlanePartitionSimple(String string, PlaneIdentifierSpaceSimple idSpace) {
-		this.id = new PlaneIdentifier(string, idSpace);
+	public PlanePartitionSimple(PlaneIdentifier position) {
+		this.id = position;
 	}
 
 	public PlanePartitionSimple(String string) {
-		this(string, null);
-	}
-
-	public String toString() {
-		return this.id.toString();
+		this.id = new PlaneIdentifier(string);
 	}
 
 	@Override
-	public Double distance(Identifier<Double> id) {
+	public double distance(DoubleIdentifier id) {
 		return this.id.distance(id);
 	}
 
 	@Override
-	public boolean equals(Partition<Double> partition) {
-		return this.id.equals((((PlanePartitionSimple) partition).getId()));
+	public double distance(DoublePartition p) {
+		return this.id.distance(((PlanePartitionSimple) p).id);
 	}
 
 	@Override
-	public boolean contains(Identifier<Double> id) {
+	public String asString() {
+		return this.id.asString();
+	}
+
+	@Override
+	public boolean contains(Identifier id) {
 		return this.id.equals(id);
 	}
 
 	@Override
-	public DIdentifier getRepresentativeID() {
+	public Identifier getRepresentativeIdentifier() {
 		return this.id;
+	}
+
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return this.id;
+	}
+
+	@Override
+	public boolean equals(Partition p) {
+		return this.id.equals(((PlanePartitionSimple) p).id);
 	}
 
 	/**

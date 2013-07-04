@@ -36,8 +36,8 @@
 package gtna.routing.greedyVariations;
 
 import gtna.graph.Node;
-import gtna.id.BIIdentifier;
-import gtna.id.DIdentifier;
+import gtna.id.BigIntegerIdentifier;
+import gtna.id.DoubleIdentifier;
 import gtna.util.parameter.DoubleParameter;
 import gtna.util.parameter.IntParameter;
 import gtna.util.parameter.Parameter;
@@ -67,10 +67,9 @@ public class DistRestrictEdgeGreedy extends EdgeGreedy {
 	}
 
 	@Override
-	public int getNextD(int current, DIdentifier target, Random rand,
+	public int getNextD(int current, DoubleIdentifier target, Random rand,
 			Node[] nodes) {
-		double currentDist = this.idSpaceD.getPartitions()[current]
-				.distance(target);
+		double currentDist = this.pD[current].distance(target);
 		// System.out.println("Currently at " + current);
 		Vector<Integer> pre = from.get(current);
 		Vector<Integer> res = new Vector<Integer>();
@@ -120,7 +119,7 @@ public class DistRestrictEdgeGreedy extends EdgeGreedy {
 	}
 
 	@Override
-	public int getNextBI(int current, BIIdentifier target, Random rand,
+	public int getNextBI(int current, BigIntegerIdentifier target, Random rand,
 			Node[] nodes) {
 
 		return -1;

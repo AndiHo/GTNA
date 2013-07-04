@@ -36,8 +36,8 @@
 package gtna.routing.greedyVariations;
 
 import gtna.graph.Node;
-import gtna.id.BIIdentifier;
-import gtna.id.DIdentifier;
+import gtna.id.BigIntegerIdentifier;
+import gtna.id.DoubleIdentifier;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -67,10 +67,9 @@ public class PureGreedy extends GreedyTemplate {
 	}
 
 	@Override
-	public int getNextD(int current, DIdentifier target, Random rand,
+	public int getNextD(int current, DoubleIdentifier target, Random rand,
 			Node[] nodes) {
-		double currentDist = this.idSpaceD.getPartitions()[current]
-				.distance(target);
+		double currentDist = this.pD[current].distance(target);
 		double minDist = this.idSpaceD.getMaxDistance();
 		int minNode = -1;
 		for (int out : nodes[current].getOutgoingEdges()) {
@@ -84,10 +83,9 @@ public class PureGreedy extends GreedyTemplate {
 	}
 
 	@Override
-	public int getNextBI(int current, BIIdentifier target, Random rand,
+	public int getNextBI(int current, BigIntegerIdentifier target, Random rand,
 			Node[] nodes) {
-		BigInteger currentDist = this.idSpaceBI.getPartitions()[current]
-				.distance(target);
+		BigInteger currentDist = this.pBI[current].distance(target);
 		BigInteger minDist = this.idSpaceBI.getMaxDistance();
 		int minNode = -1;
 		for (int out : nodes[current].getOutgoingEdges()) {

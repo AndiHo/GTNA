@@ -35,57 +35,91 @@
  */
 package gtna.id.hyperbolic;
 
+import java.util.Random;
+
+import org.apfloat.Apcomplex;
 import org.apfloat.Apfloat;
 
+import gtna.id.APFIdentifier;
 import gtna.id.APFPartition;
 import gtna.id.Identifier;
 import gtna.id.Partition;
+import gtna.id.md.MDIdentifier;
 
 /**
  * @author Andreas Höfer
  *
  */
-public class Hyperbolic2DPartitionSimple implements APFPartition {
+public class Hyperbolic2DPartitionSimple extends APFPartition {
 
-	private Hyperbolic2DIdentifier id;
+	protected Hyperbolic2DIdentifier id;
 	
 	public Hyperbolic2DPartitionSimple(Hyperbolic2DIdentifier id){
 		this.id = id;
 	}
 	
-	/* 
-	 * @see gtna.id.Partition#distance(gtna.id.Identifier)
+	public Hyperbolic2DPartitionSimple(String string) {
+		this.id = new Hyperbolic2DIdentifier(string);
+	}
+		
+	/* (non-Javadoc)
+	 * @see gtna.id.APFPartition#distance(gtna.id.APFPartition)
 	 */
 	@Override
-	public Apfloat distance(Identifier<Apfloat> id) {
+	public Apfloat distance(APFPartition p) {
+		return this.id.distance((APFIdentifier) p.getRepresentativeIdentifier());
+	}
+	
+	@Override
+	public Apfloat distance(APFIdentifier id) {
 		return this.id.distance(id);
 	}
-
-	/* 
-	 * @see gtna.id.Partition#contains(gtna.id.Identifier)
-	 */
-	@Override
-	public boolean contains(Identifier<Apfloat> id) {
-		return this.id.equals((Hyperbolic2DIdentifier) id);
-	}
-
-	/* 
-	 * @see gtna.id.Partition#equals(gtna.id.Partition)
-	 */
-	@Override
-	public boolean equals(Partition<Apfloat> p) {
-		return this.id.equals((Hyperbolic2DIdentifier) p.getRepresentativeID());
-	}
-
-	/* 
-	 * @see gtna.id.Partition#getRepresentativeID()
-	 */
-	@Override
-	public Identifier<Apfloat> getRepresentativeID() {
-		return this.id;
-	}
+	
 
 	public String toString() {
 		return this.id.toString();
 	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#asString()
+	 */
+	@Override
+	public String asString() {
+		return this.id.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#contains(gtna.id.Identifier)
+	 */
+	@Override
+	public boolean contains(Identifier id) {
+		return this.id.equals((Hyperbolic2DIdentifier) id);
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#getRepresentativeIdentifier()
+	 */
+	@Override
+	public Identifier getRepresentativeIdentifier() {
+		return this.id;
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#getRandomIdentifier(java.util.Random)
+	 */
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return new Hyperbolic2DIdentifier(id);
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.Partition#equals(gtna.id.Partition)
+	 */
+	@Override
+	public boolean equals(Partition p) {
+		return this.id.equals((Hyperbolic2DIdentifier) id);
+	}
+
+	
+	
 }

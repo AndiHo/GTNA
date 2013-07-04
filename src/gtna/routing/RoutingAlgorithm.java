@@ -36,6 +36,9 @@
 package gtna.routing;
 
 import gtna.graph.Graph;
+import gtna.id.Identifier;
+import gtna.id.IdentifierSpace;
+import gtna.id.data.DataStoreList;
 import gtna.util.parameter.Parameter;
 import gtna.util.parameter.ParameterList;
 
@@ -50,6 +53,11 @@ import java.util.Random;
  * 
  */
 public abstract class RoutingAlgorithm extends ParameterList {
+
+	protected IdentifierSpace identifierSpace;
+
+	protected DataStoreList dataStorageList;
+
 	public RoutingAlgorithm(String key) {
 		super(key);
 	}
@@ -59,22 +67,19 @@ public abstract class RoutingAlgorithm extends ParameterList {
 	}
 
 	/**
-	 * Implements the actual routing. The given source node attempts to route
-	 * towards a random destination which can be a random identifier in the
-	 * identifier space of a specific node (or its identifier). Choosing the
-	 * destination of such a random routing attempt is also part of the routing
-	 * algorithm's implementation.
+	 * The given source attempts to route towards the destination specified by
+	 * the target identifier.
 	 * 
-	 * @param nodes
-	 *            set of all nodes in the network
-	 * @param src
+	 * @param graph
+	 *            network graph
+	 * @param start
 	 *            node from which the routing should start
-	 * @param rand
-	 *            PRNG
+	 * @param target
+	 *            target identifier to be routed towards
 	 * @return Path object containing information about the routing attempt
 	 */
-	public abstract Route routeToRandomTarget(Graph graph, int start,
-			Random rand);
+	public abstract Route routeToTarget(Graph graph, int start,
+			Identifier target, Random rand);
 
 	/**
 	 * Checks if this routing algorithm can be applied to the given network
@@ -94,6 +99,50 @@ public abstract class RoutingAlgorithm extends ParameterList {
 	 * @param nodes
 	 *            list of all nodes contained in the network
 	 */
-	public abstract void preprocess(Graph graph);
+	public void preprocess(Graph graph) {
+		if (graph.hasProperty("ID_SPACE_0", IdentifierSpace.class)) {
+			this.identifierSpace = (IdentifierSpace) graph
+					.getProperty("ID_SPACE_0");
+		}
+		if (graph.hasProperty("DATA_STORAGE_0", DataStoreList.class)) {
+			this.dataStorageList = (DataStoreList) graph
+					.getProperty("DATA_STORAGE_0");
+		}
+	}
+
+	public boolean hasDataItem(int node, Identifier id) {
+		if (this.dataStorageList == null) {
+			return false;
+		}
+		return this.dataStorageList.getStorageForNode(node).contains(id);
+	}
+
+	public boolean isResponsibleForIdentifier(int node, Identifier id) {
+		if (this.identifierSpace == null) {
+			return false;
+		}
+		return this.identifierSpace.getPartitions()[node].contains(id);
+	}
+
+	public boolean isEndPoint(int node, Identifier id) {
+		if (this.dataStorageList != null) {
+			return this.hasDataItem(node, id);
+		}
+		if (this.identifierSpace != null) {
+			return this.isResponsibleForIdentifier(node, id);
+		}
+		return false;
+	}
+
+	public static String toString(RoutingAlgorithm[] phases) {
+		StringBuffer buff = new StringBuffer();
+		for (RoutingAlgorithm phase : phases) {
+			if (buff.length() > 0) {
+				buff.append("--");
+			}
+			buff.append(phase.getFolderName());
+		}
+		return buff.toString();
+	}
 
 }

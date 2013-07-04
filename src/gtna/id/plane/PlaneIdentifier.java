@@ -35,74 +35,92 @@
  */
 package gtna.id.plane;
 
-import gtna.id.DIdentifier;
+import gtna.id.DoubleIdentifier;
 import gtna.id.Identifier;
-
-import java.util.Random;
 
 /**
  * @author benni
  * 
  */
-public class PlaneIdentifier implements DIdentifier, Comparable<PlaneIdentifier> {
-	private double x;
+public class PlaneIdentifier extends DoubleIdentifier {
 
-	private double y;
+	protected double x;
 
-	private PlaneIdentifierSpaceSimple idSpace;
+	protected double y;
 
-	public PlaneIdentifier(double x, double y, PlaneIdentifierSpaceSimple idSpace) {
-		this.x = x % idSpace.getModulusX();
-		this.y = y % idSpace.getModulusY();
-		this.idSpace = idSpace;
+	protected double xModulus;
+
+	protected double yModulus;
+
+	protected boolean wrapAround;
+
+	public PlaneIdentifier(double x, double y, double xModulus,
+			double yModulus, boolean wrapAround) {
+		this.x = x;
+		this.y = y;
+		this.xModulus = xModulus;
+		this.yModulus = yModulus;
+		this.wrapAround = wrapAround;
 	}
 
-	public PlaneIdentifier(String string, PlaneIdentifierSpaceSimple idSpace) {
-		String[] temp = string.replace("(", "").replace(")", "").split("/");
-		this.x = Double.parseDouble(temp[0]) % idSpace.getModulusX();
-		this.y = Double.parseDouble(temp[1]) % idSpace.getModulusY();
-		this.idSpace = idSpace;
-	}
-
-	public PlaneIdentifier(String string) {
-		this(string, null);
-	}
-
-	public String toString() {
-		return "(" + this.x + "/" + this.y + ")";
+	public PlaneIdentifier(String string){
+		String[] temp = string.split(Identifier.delimiter);
+		this.x = Double.parseDouble(temp[0]);
+		this.y = Double.parseDouble(temp[1]);
+		this.xModulus = Double.parseDouble(temp[2]);
+		this.yModulus = Double.parseDouble(temp[3]);
+		this.wrapAround= Boolean.parseBoolean(temp[4]);
 	}
 
 	@Override
-	public Double distance(Identifier<Double> id) {
-		PlaneIdentifier to = (PlaneIdentifier) id;
-		if (this.idSpace.isWrapAround()) {
-//			double dx = Math.abs(this.x - to.getX())
-//					% (this.idSpace.getModulusX() / 2.0);
-//			double dy = Math.abs(this.y - to.getY())
-//					% (this.idSpace.getModulusY() / 2.0);
-			double dx = Math.min(Math.abs(this.x - to.getX()), 
-					             Math.min(this.getIdSpace().getModulusX()+ this.x - to.getX(), 
-					            		  this.getIdSpace().getModulusX()- this.x + to.getX()));
-			double dy = Math.min(Math.abs(this.y - to.getY()), 
-		             Math.min(this.getIdSpace().getModulusY()+ this.y - to.getY(), 
-		            		  this.getIdSpace().getModulusY()- this.y + to.getY()));
-			return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+	public int compareTo(DoubleIdentifier arg0) {
+		if (this.x < ((PlaneIdentifier) arg0).x) {
+			return -1;
+		} else if (this.x > ((PlaneIdentifier) arg0).x) {
+			return 1;
+		} else if (this.y < ((PlaneIdentifier) arg0).y) {
+			return -1;
+		} else if (this.y > ((PlaneIdentifier) arg0).y) {
+			return 1;
 		} else {
-			double dx = this.x - to.getX();
-			double dy = this.y - to.getY();
-			return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+			return 0;
 		}
 	}
 
 	@Override
-	public boolean equals(Identifier<Double> id) {
-		return this.x == ((PlaneIdentifier) id).getX()
-				&& this.y == ((PlaneIdentifier) id).getY();
+	public double distance(DoubleIdentifier id) {
+		PlaneIdentifier to = (PlaneIdentifier) id;
+		if (this.wrapAround) {
+			double dx = Math.min(
+					Math.abs(this.x - to.x),
+					Math.min(this.xModulus + this.x - to.x, this.xModulus
+							- this.x + to.x));
+			double dy = Math.min(
+					Math.abs(this.y - to.y),
+					Math.min(this.yModulus + this.y - to.y, this.yModulus
+							- this.y + to.y));
+			return Math.sqrt(dx * dx + dy * dy);
+		} else {
+			double dx = this.x - to.x;
+			double dy = this.y - to.y;
+			return Math.sqrt(dx * dx + dy * dy);
+		}
 	}
 
-	public static PlaneIdentifier rand(Random rand, PlaneIdentifierSpaceSimple idSpace) {
-		return new PlaneIdentifier(rand.nextDouble() * idSpace.getModulusX(),
-				rand.nextDouble() * idSpace.getModulusY(), idSpace);
+	@Override
+	public String asString() {
+		return this.x + Identifier.delimiter + this.y + Identifier.delimiter
+				+ this.xModulus + Identifier.delimiter + this.yModulus
+				+ Identifier.delimiter + this.wrapAround;
+	}
+
+	@Override
+	public boolean equals(Identifier id) {
+		PlaneIdentifier pid = (PlaneIdentifier) id;
+		return this.x == pid.x && this.y == pid.y
+				&& this.xModulus == pid.xModulus
+				&& this.yModulus == pid.yModulus
+				&& this.wrapAround == pid.wrapAround;
 	}
 
 	/**
@@ -113,17 +131,17 @@ public class PlaneIdentifier implements DIdentifier, Comparable<PlaneIdentifier>
 	}
 
 	/**
-	 * @return the y
-	 */
-	public double getY() {
-		return this.y;
-	}
-
-	/**
 	 * @param x the x to set
 	 */
 	public void setX(double x) {
 		this.x = x;
+	}
+
+	/**
+	 * @return the y
+	 */
+	public double getY() {
+		return this.y;
 	}
 
 	/**
@@ -134,16 +152,45 @@ public class PlaneIdentifier implements DIdentifier, Comparable<PlaneIdentifier>
 	}
 
 	/**
-	 * @return the idSpace
+	 * @return the xModulus
 	 */
-	public PlaneIdentifierSpaceSimple getIdSpace() {
-		return this.idSpace;
+	public double getxModulus() {
+		return this.xModulus;
 	}
 
-	@Override
-	public int compareTo(PlaneIdentifier o) {
-		// TODO Auto-generated method stub
-		return 0;
+	/**
+	 * @param xModulus the xModulus to set
+	 */
+	public void setxModulus(double xModulus) {
+		this.xModulus = xModulus;
+	}
+
+	/**
+	 * @return the yModulus
+	 */
+	public double getyModulus() {
+		return this.yModulus;
+	}
+
+	/**
+	 * @param yModulus the yModulus to set
+	 */
+	public void setyModulus(double yModulus) {
+		this.yModulus = yModulus;
+	}
+
+	/**
+	 * @return the wrapAround
+	 */
+	public boolean isWrapAround() {
+		return this.wrapAround;
+	}
+
+	/**
+	 * @param wrapAround the wrapAround to set
+	 */
+	public void setWrapAround(boolean wrapAround) {
+		this.wrapAround = wrapAround;
 	}
 
 }

@@ -35,7 +35,7 @@
  */
 package gtna.id.lookahead;
 
-import gtna.id.DIdentifier;
+import gtna.id.DoublePartition;
 import gtna.id.Partition;
 
 import java.lang.reflect.Constructor;
@@ -45,7 +45,6 @@ import java.lang.reflect.InvocationTargetException;
  * @author benni
  * 
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
 public class LookaheadElement {
 	private Partition partition;
 
@@ -56,7 +55,7 @@ public class LookaheadElement {
 		this.via = via;
 	}
 
-	public LookaheadElement(String string, Constructor<DIdentifier> constructor) {
+	public LookaheadElement(String string, Constructor<DoublePartition> constructor) {
 		String[] temp = string.split("->");
 		try {
 			this.partition = (Partition) constructor.newInstance(temp[0]);

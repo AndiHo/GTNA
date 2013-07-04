@@ -60,7 +60,7 @@ import gtna.networks.util.DescriptionWrapper;
 import gtna.plot.Plotting;
 import gtna.transformation.Transformation;
 import gtna.transformation.attackableEmbedding.lmc.LMC;
-import gtna.transformation.communities.CommunityDetectionLPA;
+import gtna.transformation.communities.CDLPA;
 import gtna.transformation.embedding.communities.CommunityEmbedding;
 import gtna.transformation.embedding.communities.partitioner.community.EqualSizeCommunityPartitioner;
 import gtna.transformation.embedding.communities.partitioner.idSpace.EqualSizeIdSpacePartitioner;
@@ -110,24 +110,24 @@ public class IdMetricsTest {
 				ridsshd, ridssd };
 
 		Transformation[] t1 = new Transformation[] { new RemoveGraphProperty(),
-				new RandomRingIDSpaceSimple() };
+				new RandomRingIDSpaceSimple(true) };
 		Transformation[] t2 = new Transformation[] { new RemoveGraphProperty(),
-				new RandomRingIDSpaceSimple(),
+				new RandomRingIDSpaceSimple(true),
 				new LMC(1000, LMC.MODE_UNRESTRICTED, 0, LMC.DELTA_1_N, 0) };
 		Transformation[] t3 = new Transformation[] {
 				new RemoveGraphProperty(),
-				new CommunityDetectionLPA(50),
+				new CDLPA(50),
 				new CommunityEmbedding(new RandomCommunitySorter(),
 						new EqualSizeIdSpacePartitioner(0.0),
 						new RandomNodeSorter(),
-						new EqualSizeCommunityPartitioner(), 1.0, true) };
+						new EqualSizeCommunityPartitioner(), true) };
 		Transformation[] t4 = new Transformation[] {
 				new RemoveGraphProperty(),
-				new CommunityDetectionLPA(50),
+				new CDLPA(50),
 				new CommunityEmbedding(new RandomCommunitySorter(),
 						new RelativeSizeIdSpacePartitioner(0.0),
 						new RandomNodeSorter(),
-						new EqualSizeCommunityPartitioner(), 1.0, true) };
+						new EqualSizeCommunityPartitioner(), true) };
 
 		Map<Transformation[], String> names = new HashMap<Transformation[], String>();
 		names.put(t1, "random");

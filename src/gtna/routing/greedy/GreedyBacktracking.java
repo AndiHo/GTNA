@@ -37,11 +37,9 @@ package gtna.routing.greedy;
 
 import gtna.graph.Graph;
 import gtna.graph.Node;
-import gtna.id.DIdentifier;
-import gtna.id.DIdentifierSpace;
-import gtna.id.DPartition;
+import gtna.id.DoubleIdentifierSpace;
+import gtna.id.Identifier;
 import gtna.routing.Route;
-import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
 import gtna.util.parameter.IntParameter;
 import gtna.util.parameter.Parameter;
@@ -55,9 +53,6 @@ import java.util.Random;
  * 
  */
 public class GreedyBacktracking extends RoutingAlgorithm {
-	private DIdentifierSpace idSpace;
-
-	private DPartition[] p;
 
 	private int ttl;
 
@@ -73,56 +68,42 @@ public class GreedyBacktracking extends RoutingAlgorithm {
 	}
 
 	@Override
-	public Route routeToRandomTarget(Graph graph, int start, Random rand) {
-		DIdentifier target = (DIdentifier) this.idSpace.randomID(rand);
-		while (this.p[start].contains(target)) {
-			target = (DIdentifier) this.idSpace.randomID(rand);
-		}
+	public Route routeToTarget(Graph graph, int start, Identifier target,
+			Random rand) {
 		return this.route(new ArrayList<Integer>(), start, target, rand,
 				graph.getNodes(), new HashMap<Integer, Integer>());
 	}
 
 	private Route route(ArrayList<Integer> route, int current,
-			DIdentifier target, Random rand, Node[] nodes,
+			Identifier target, Random rand, Node[] nodes,
 			HashMap<Integer, Integer> from) {
 		route.add(current);
-		if (this.idSpace.getPartitions()[current].contains(target)) {
-			return new RouteImpl(route, true);
+
+		if (this.isEndPoint(current, target)) {
+			return new Route(route, true);
 		}
-		if (route.size() > ttl) {
-			return new RouteImpl(route, false);
+		if (route.size() > this.ttl) {
+			return new Route(route, false);
 		}
-		double currentDist = this.idSpace.getPartitions()[current]
-				.distance(target);
-		double minDist = this.idSpace.getMaxDistance();
-		int minNode = -1;
-		for (int out : nodes[current].getOutgoingEdges()) {
-			double dist = this.p[out].distance(target);
-			if (dist < minDist && dist < currentDist && !from.containsKey(out)) {
-				minDist = dist;
-				minNode = out;
+
+		int closest = target.getClosestNode(nodes[current].getOutgoingEdges(),
+				this.identifierSpace.getPartitions());
+		if (!target.isCloser(this.identifierSpace.getPartition(closest),
+				this.identifierSpace.getPartition(current))) {
+			if (from.containsKey(current)) {
+				return this.route(route, from.get(current), target, rand,
+						nodes, from);
 			}
+			return new Route(route, false);
 		}
-		if (minNode == -1 && from.containsKey(current)) {
-			return this.route(route, from.get(current), target, rand, nodes,
-					from);
-		} else if (minNode == -1) {
-			return new RouteImpl(route, false);
-		}
-		from.put(minNode, current);
-		return this.route(route, minNode, target, rand, nodes, from);
+
+		from.put(closest, current);
+		return this.route(route, closest, target, rand, nodes, from);
 	}
 
 	@Override
 	public boolean applicable(Graph graph) {
-		return graph.hasProperty("ID_SPACE_0")
-				&& graph.getProperty("ID_SPACE_0") instanceof DIdentifierSpace;
-	}
-
-	@Override
-	public void preprocess(Graph graph) {
-		this.idSpace = (DIdentifierSpace) graph.getProperty("ID_SPACE_0");
-		this.p = (DPartition[]) idSpace.getPartitions();
+		return graph.hasProperty("ID_SPACE_0", DoubleIdentifierSpace.class);
 	}
 
 }

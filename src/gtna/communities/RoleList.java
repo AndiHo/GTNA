@@ -35,8 +35,11 @@
  */
 package gtna.communities;
 
-import gtna.graph.Graph;
+import gtna.communities.Role.RoleType;
 import gtna.graph.GraphProperty;
+import gtna.io.Filereader;
+import gtna.io.Filewriter;
+import gtna.util.Config;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,8 +49,12 @@ import java.util.Set;
  * @author benni
  * 
  */
-public class RoleList implements GraphProperty {
+public class RoleList extends GraphProperty {
 	private Role[] roles;
+
+	public RoleList() {
+		this(new Role[0]);
+	}
 
 	public RoleList(Role[] roles) {
 		this.roles = roles;
@@ -83,16 +90,72 @@ public class RoleList implements GraphProperty {
 		return nodes;
 	}
 
-	@Override
-	public boolean write(String filename, String key) {
-		// TODO Auto-generated method stub
-		return false;
+	protected String asString(int index, Role r) {
+		return index + ":" + r.toString();
+	}
+
+	protected Role fromString(String rs, RoleType type) {
+		String[] temp = rs.split(":");
+		return Role.fromString(type, temp[1]);
 	}
 
 	@Override
-	public void read(String filename, Graph graph) {
-		// TODO Auto-generated method stub
+	public boolean write(String filename, String key) {
+		Filewriter fw = new Filewriter(filename);
 
+		// CLASS
+		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
+		fw.writeln(this.getClass().getCanonicalName().toString());
+
+		// KEYS
+		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
+		fw.writeln(key);
+
+		// # OF NODES
+		fw.writeComment("# of Nodes");
+		fw.writeln(this.roles.length);
+
+		// ROLE TYPE
+		fw.writeComment("Role Type");
+		fw.writeln(this.roles[0].getRoleType().toString());
+
+		fw.writeln();
+
+		// LIST OF NODE ROLES
+		for (int i = 0; i < this.roles.length; i++) {
+			fw.writeln(this.asString(i, roles[i]));
+		}
+
+		return fw.close();
+	}
+
+	@Override
+	public String read(String filename) {
+		Filereader fr = new Filereader(filename);
+
+		// CLASS
+		fr.readLine();
+
+		// KEYS
+		String key = fr.readLine();
+
+		// # OF NODES
+		int nodes = Integer.parseInt(fr.readLine());
+		this.roles = new Role[nodes];
+
+		// ROLE TYPE
+		RoleType type = RoleType.valueOf(fr.readLine());
+
+		// LIST OF NODE ROLES
+		String line = null;
+		int index = 0;
+		while ((line = fr.readLine()) != null) {
+			this.roles[index++] = this.fromString(line, type);
+		}
+
+		fr.close();
+
+		return key;
 	}
 
 }

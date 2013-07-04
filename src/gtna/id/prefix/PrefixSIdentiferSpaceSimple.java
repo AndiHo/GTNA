@@ -39,6 +39,8 @@ import gtna.graph.Graph;
 import gtna.id.Identifier;
 import gtna.id.IdentifierSpace;
 import gtna.id.Partition;
+import gtna.id.SIdentifierSpace;
+import gtna.id.md.MDPartitionSimple;
 import gtna.io.Filereader;
 import gtna.io.Filewriter;
 import gtna.util.Config;
@@ -50,24 +52,29 @@ import java.util.Random;
  * @author Andreas Höfer
  *
  */
-public class PrefixSIdentiferSpaceSimple implements IdentifierSpace<Integer> {
+public class PrefixSIdentiferSpaceSimple extends SIdentifierSpace {
 	
     private int size;
     private int bitsPerCoord;
 	private PrefixSPartitionSimple[] partitions; 
 	private boolean virtual;
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#getPartitions()
+	
+
+	/**
+	 * 
+	 * @param partitions
+	 * @param bitsPerCoord
+	 * @param size
+	 * @param virtual
 	 */
 	
-	public PrefixSIdentiferSpaceSimple(){
-	}
-	
-	public PrefixSIdentiferSpaceSimple(int bitsPerCoord, int size, boolean virtual){
+	public PrefixSIdentiferSpaceSimple(PrefixSPartitionSimple[] partitions, int bitsPerCoord, int size, boolean virtual){
+		super(partitions);
 		this.bitsPerCoord = bitsPerCoord;
 		this.size = size;
 		this.virtual = virtual;
 	}
+
 	public int getSize() {
 		return this.size;
 	}
@@ -85,111 +92,14 @@ public class PrefixSIdentiferSpaceSimple implements IdentifierSpace<Integer> {
 		return partitions;
 	}
 	
-
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#setPartitions(gtna.id.Partition<Type>[])
-	 */
-	@Override
-	public void setPartitions(Partition<Integer>[] partitions) {
-		this.partitions =(PrefixSPartitionSimple[]) partitions;  
-	}
-
-	/* (non-Javadoc)
-	 * @see gtna.id.IdentifierSpace#randomID(java.util.Random)
-	 */
-	@Override
-	public Identifier<Integer> randomID(Random rand) {
-		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeID();
-	}
-
 	/* (non-Javadoc)
 	 * @see gtna.id.IdentifierSpace#getMaxDistance()
 	 */
 	@Override
-	public Integer getMaxDistance() {
+	public short getMaxDistance() {
 		return Short.MAX_VALUE;
 	}
 
-	/* (non-Javadoc)
-	 * @see gtna.graph.GraphProperty#write(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public boolean write(String filename, String key) {
-		Filewriter fw = new Filewriter(filename);
-		
-		// CLASS
-		fw.writeComment(Config.get("GRAPH_PROPERTY_CLASS"));
-		fw.writeln(this.getClass().getCanonicalName().toString());
-
-		// KEY
-		fw.writeComment(Config.get("GRAPH_PROPERTY_KEY"));
-		fw.writeln(key);
-
-		// SIZE
-		fw.writeComment("SIZE");
-		fw.writeln(size);
-		
-		// BITSPERCOORD
-		fw.writeComment("BITSPERCOORD");
-		fw.writeln(bitsPerCoord);
-
-		// Type
-		fw.writeComment("VIRTUAL");
-		fw.writeln(""+this.virtual);
-		
-		// # PARTITIONS
-		fw.writeComment("Partitions");
-		fw.writeln(this.partitions.length);
-
-		fw.writeln();
-
-		System.out.println("Write Prefix ID space");
-		// PARTITIONS
-		int index = 0;
-		for (PrefixSPartitionSimple p : this.partitions) {
-			fw.writeln(index++ + ":" + p.toString());
-		}
-
-		return fw.close();
-	}
-
-	/* (non-Javadoc)
-	 * @see gtna.graph.GraphProperty#read(java.lang.String, gtna.graph.Graph)
-	 */
-	@Override
-	public void read(String filename, Graph graph) {
-		Filereader fr = new Filereader(filename);
-
-		// CLASS
-		fr.readLine();
-
-		// KEY
-		String key = fr.readLine();
-		
-		// SIZE
-		this.size = Integer.parseInt(fr.readLine());
-		
-		// BITSPERCOORD
-		this.bitsPerCoord = Integer.parseInt(fr.readLine());
-		
-		// Type
-        this.virtual = Boolean.parseBoolean(fr.readLine());
-        
-		// # PARTITIONS
-		int partitions = Integer.parseInt(fr.readLine());
-		this.partitions = new PrefixSPartitionSimple[partitions];
-
-		// PARTITIONS
-		String line = null;
-		while ((line = fr.readLine()) != null) {
-			String[] temp = line.split(":");
-			int index = Integer.parseInt(temp[0]);
-			this.partitions[index] = new PrefixSPartitionSimple(new PrefixSIdentifier(temp[1]));
-		}
-
-		fr.close();
-		graph.addProperty(key, this);	
-	}
 	/**
 	 * @return the virtual
 	 */
@@ -201,6 +111,45 @@ public class PrefixSIdentiferSpaceSimple implements IdentifierSpace<Integer> {
 	 */
 	public void setVirtual(boolean virtual) {
 		this.virtual = virtual;
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#writeParameters(gtna.io.Filewriter)
+	 */
+	@Override
+	protected void writeParameters(Filewriter fw) {
+        // SIZE	
+		this.writeParameter(fw, "size", this.size);
+
+		// BITSPERCOORD
+		this.writeParameter(fw, "bitsPerCoord", this.bitsPerCoord);
+		
+		// Type
+		this.writeParameter(fw, "virtual ", this.virtual);
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#readParameters(gtna.io.Filereader)
+	 */
+	@Override
+	protected void readParameters(Filereader fr) {
+		
+		// SIZE
+		this.size = Integer.parseInt(fr.readLine());
+				
+		// BITSPERCOORD
+		this.bitsPerCoord = Integer.parseInt(fr.readLine());
+				
+		// Type
+		this.virtual = Boolean.parseBoolean(fr.readLine());
+	}
+
+	/* (non-Javadoc)
+	 * @see gtna.id.IdentifierSpace#getRandomIdentifier(java.util.Random)
+	 */
+	@Override
+	public Identifier getRandomIdentifier(Random rand) {
+		return this.partitions[rand.nextInt(this.partitions.length)].getRepresentativeIdentifier();
 	}
 
 

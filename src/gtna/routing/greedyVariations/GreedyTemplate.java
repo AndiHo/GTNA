@@ -38,14 +38,14 @@ package gtna.routing.greedyVariations;
 import gtna.graph.Graph;
 import gtna.graph.GraphProperty;
 import gtna.graph.Node;
-import gtna.id.BIIdentifier;
-import gtna.id.BIIdentifierSpace;
-import gtna.id.BIPartition;
-import gtna.id.DIdentifier;
-import gtna.id.DIdentifierSpace;
-import gtna.id.DPartition;
+import gtna.id.BigIntegerIdentifier;
+import gtna.id.BigIntegerIdentifierSpace;
+import gtna.id.BigIntegerPartition;
+import gtna.id.DoubleIdentifier;
+import gtna.id.DoubleIdentifierSpace;
+import gtna.id.DoublePartition;
+import gtna.id.Identifier;
 import gtna.routing.Route;
-import gtna.routing.RouteImpl;
 import gtna.routing.RoutingAlgorithm;
 import gtna.util.parameter.IntParameter;
 import gtna.util.parameter.Parameter;
@@ -54,20 +54,20 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * templete for greedy-like algorithms
+ * template for greedy-like algorithms
  * 
  * @author stefanie
  * 
  */
 public abstract class GreedyTemplate extends RoutingAlgorithm {
 
-	DIdentifierSpace idSpaceD;
+	DoubleIdentifierSpace idSpaceD;
 
-	DPartition[] pD;
+	DoublePartition[] pD;
 
-	BIIdentifierSpace idSpaceBI;
+	BigIntegerIdentifierSpace idSpaceBI;
 
-	BIPartition[] pBI;
+	BigIntegerPartition[] pBI;
 
 	private int ttl;
 
@@ -91,80 +91,14 @@ public abstract class GreedyTemplate extends RoutingAlgorithm {
 		this.ttl = ttl;
 	}
 
-	/**
-	 * routing to a target, determine if double of BigInteger identifier
-	 */
 	@Override
-	public Route routeToRandomTarget(Graph graph, int start, Random rand) {
+	public Route routeToTarget(Graph graph, int start, Identifier target,
+			Random rand) {
 		this.setSets(graph.getNodes().length);
-		if (this.idSpaceBI != null) {
-			return this.routeToRandomTargetBI(graph, start, rand);
-		} else if (this.idSpaceD != null) {
-			return this.routeToRandomTargetD(graph, start, rand);
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * the route request
-	 * 
-	 * @param graph
-	 * @param start
-	 * @param rand
-	 * @return
-	 */
-	private Route routeToRandomTargetBI(Graph graph, int start, Random rand) {
-		BIIdentifier target = (BIIdentifier) this.idSpaceBI.randomID(rand);
-		while (this.pBI[start].contains(target)) {
-			target = (BIIdentifier) this.idSpaceBI.randomID(rand);
-		}
-		return this.routeBI(new ArrayList<Integer>(), start, target, rand,
-				graph.getNodes());
-	}
-
-	/**
-	 * generic method for the routing procedure: check if target is reached, if
-	 * not select the next node or fail
-	 * 
-	 * @param route
-	 * @param current
-	 * @param target
-	 * @param rand
-	 * @param nodes
-	 * @return
-	 */
-	private Route routeBI(ArrayList<Integer> route, int current,
-			BIIdentifier target, Random rand, Node[] nodes) {
-		route.add(current);
-		if (this.idSpaceBI.getPartitions()[current].contains(target)) {
-			return new RouteImpl(route, true);
-		}
-		if (route.size() > this.ttl) {
-			return new RouteImpl(route, false);
-		}
-		int minNode = this.getNextBI(current, target, rand, nodes);
-		if (minNode == -1) {
-			return new RouteImpl(route, false);
-		}
-		return this.routeBI(route, minNode, target, rand, nodes);
-	}
-
-	/**
-	 * route request
-	 * 
-	 * @param graph
-	 * @param start
-	 * @param rand
-	 * @return
-	 */
-	private Route routeToRandomTargetD(Graph graph, int start, Random rand) {
-		DIdentifier target = (DIdentifier) this.idSpaceD.randomID(rand);
-		while (this.pD[start].contains(target)) {
-			target = (DIdentifier) this.idSpaceD.randomID(rand);
-		}
-		return this.routeD(new ArrayList<Integer>(), start, target, rand,
-				graph.getNodes());
+		if (this.idSpaceD != null)
+			return this.routeD(new ArrayList<Integer>(), start, (DoubleIdentifier) target, rand, graph.getNodes());
+		else
+			return this.routeBI(new ArrayList<Integer>(), start, (BigIntegerIdentifier) target, rand, graph.getNodes());
 	}
 
 	/**
@@ -179,41 +113,69 @@ public abstract class GreedyTemplate extends RoutingAlgorithm {
 	 * @return
 	 */
 	private Route routeD(ArrayList<Integer> route, int current,
-			DIdentifier target, Random rand, Node[] nodes) {
+			DoubleIdentifier target, Random rand, Node[] nodes) {
 		route.add(current);
-		if (this.idSpaceD.getPartitions()[current].contains(target)) {
-			return new RouteImpl(route, true);
+		if (this.isEndPoint(current, target)) {
+			return new Route(route, true);
 		}
 		if (route.size() > this.ttl) {
-			return new RouteImpl(route, false);
+			return new Route(route, false);
 		}
 		int minNode = this.getNextD(current, target, rand, nodes);
 		if (minNode == -1) {
-			return new RouteImpl(route, false);
+			return new Route(route, false);
 		}
 		return this.routeD(route, minNode, target, rand, nodes);
+	}
+	
+	/**
+	 * generic method for the routing procedure: check if target is reached, if
+	 * not select the next node or fail
+	 * 
+	 * @param route
+	 * @param current
+	 * @param target
+	 * @param rand
+	 * @param nodes
+	 * @return
+	 */
+	private Route routeBI(ArrayList<Integer> route, int current,
+			BigIntegerIdentifier target, Random rand, Node[] nodes) {
+		route.add(current);
+		if (this.isEndPoint(current, target)) {
+			return new Route(route, true);
+		}
+		if (route.size() > this.ttl) {
+			return new Route(route, false);
+		}
+		int minNode = this.getNextBI(current, target, rand, nodes);
+		if (minNode == -1) {
+			return new Route(route, false);
+		}
+		return this.routeBI(route, minNode, target, rand, nodes);
 	}
 
 	@Override
 	public boolean applicable(Graph graph) {
 		return graph.hasProperty("ID_SPACE_0")
-				&& (graph.getProperty("ID_SPACE_0") instanceof DIdentifierSpace || graph
-						.getProperty("ID_SPACE_0") instanceof BIIdentifierSpace);
+				&& (graph.getProperty("ID_SPACE_0") instanceof DoubleIdentifierSpace || graph
+						.getProperty("ID_SPACE_0") instanceof BigIntegerIdentifierSpace);
 	}
 
 	@Override
 	public void preprocess(Graph graph) {
+		super.preprocess(graph);
 		GraphProperty p = graph.getProperty("ID_SPACE_0");
-		if (p instanceof DIdentifierSpace) {
-			this.idSpaceD = (DIdentifierSpace) p;
-			this.pD = (DPartition[]) this.idSpaceD.getPartitions();
+		if (p instanceof DoubleIdentifierSpace) {
+			this.idSpaceD = (DoubleIdentifierSpace) p;
+			this.pD = (DoublePartition[]) this.idSpaceD.getPartitions();
 			this.idSpaceBI = null;
 			this.pBI = null;
-		} else if (p instanceof BIIdentifierSpace) {
+		} else if (p instanceof BigIntegerIdentifierSpace) {
 			this.idSpaceD = null;
 			this.pD = null;
-			this.idSpaceBI = (BIIdentifierSpace) p;
-			this.pBI = (BIPartition[]) this.idSpaceBI.getPartitions();
+			this.idSpaceBI = (BigIntegerIdentifierSpace) p;
+			this.pBI = (BigIntegerPartition[]) this.idSpaceBI.getPartitions();
 		} else {
 			this.idSpaceD = null;
 			this.pD = null;
@@ -231,11 +193,12 @@ public abstract class GreedyTemplate extends RoutingAlgorithm {
 	 * @param nodes
 	 * @return
 	 */
-	public abstract int getNextD(int current, DIdentifier target, Random rand,
+	
+	public abstract int getNextD(int current, DoubleIdentifier target, Random rand,
 			Node[] nodes);
-
-	public abstract int getNextBI(int current, BIIdentifier target,
-			Random rand, Node[] nodes);
+	
+	public abstract int getNextBI(int current, BigIntegerIdentifier target, Random rand,
+			Node[] nodes);
 
 	/**
 	 * abstract method initiating the necessary objects

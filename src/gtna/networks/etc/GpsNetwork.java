@@ -61,7 +61,7 @@ public class GpsNetwork extends Network {
 	private double radius;
 
 	public GpsNetwork(String filename, String name, double radius,
-			RoutingAlgorithm ra, Transformation[] t) {
+			Transformation[] t) {
 		super("GPS_NETWORK", GpsNetwork.getNodes(filename), new Parameter[] {
 				new StringParameter("NAME", name),
 				new DoubleParameter("RADIUS", radius) }, t);
@@ -98,10 +98,10 @@ public class GpsNetwork extends Network {
 			double y = Double.parseDouble(temp[temp.length - 1]);
 			coords[i] = new double[] { x, y };
 
-			double phi = Double.parseDouble(temp[0]);
-			double lambda = Double.parseDouble(temp[temp.length - 1]);
-			double X = (0.0) * Math.cos(phi) * Math.cos(lambda);
-			double Y = (0.0) * Math.cos(phi) * Math.sin(lambda);
+			// double phi = Double.parseDouble(temp[0]);
+			// double lambda = Double.parseDouble(temp[temp.length - 1]);
+			// double X = (0.0) * Math.cos(phi) * Math.cos(lambda);
+			// double Y = (0.0) * Math.cos(phi) * Math.sin(lambda);
 		}
 		this.add(coords, 0, -1 * this.min(coords, 0));
 		this.add(coords, 1, -1 * this.min(coords, 1));
@@ -121,16 +121,14 @@ public class GpsNetwork extends Network {
 		for (int i = 0; i < partitions.length; i++) {
 			double x = coords[i][0];
 			double y = coords[i][1];
-			PlaneIdentifier id = new PlaneIdentifier(x, y, idSpace);
+			PlaneIdentifier id = new PlaneIdentifier(x, y, modulusX, modulusY,
+					wrapAround);
 			partitions[i] = new PlanePartitionSimple(id);
 		}
-		idSpace.setPartitions(partitions);
 		graph.addProperty(graph.getNextKey("ID_SPACE"), idSpace);
 		graph.setNodes(nodes);
 		UnitDiscGraph udg = new UnitDiscGraph(radius);
 		graph = udg.transform(graph);
-		System.out.println(graph.hasProperty("ID_SPACE_0"));
-		System.out.println(graph.getProperty("ID_SPACE_0"));
 		return graph;
 	}
 
