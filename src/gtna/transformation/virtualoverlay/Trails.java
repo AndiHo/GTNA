@@ -36,8 +36,10 @@
 package gtna.transformation.virtualoverlay;
 
 import gtna.graph.spanningTree.ParentChild;
+import gtna.io.Filereader;
 import gtna.io.Filewriter;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 /**
@@ -57,6 +59,20 @@ public class Trails extends gtna.graph.GraphProperty {
 	@Override
 	public boolean write(String filename, String key) {
 		Filewriter fw = new Filewriter(filename);
+		
+		this.writeHeader(fw, this.getClass(), key);
+
+		// iterate over the outer vector
+		for (int i=0; i < trails.size(); i++){
+			Vector<int[]> curTrail = trails.get(i);
+			String line = "";
+			// iterate over the inner vector
+			for (int j=0; j < curTrail.size(); j++){
+				String elem = "(" + curTrail.get(j)[0] + ":" + curTrail.get(j)[1] + ")";  
+				line = line + "," + elem;
+			}
+			fw.write(line);
+		}
 		return fw.close();
 	}
 
@@ -65,10 +81,46 @@ public class Trails extends gtna.graph.GraphProperty {
 	 */
 	@Override
 	public String read(String filename) {
-		return "";
+//		Filereader fr = new Filereader(filename);
+//
+//		for (int i=0; i < trails.size(); i++){
+//			Vector<int[]> curTrail = trails.get(i);
+//			String line = "";
+//			// iterate over the inner vector
+//			for (int j=0; j < curTrail.size(); j++){
+//				String elem = "(" + curTrail.get(j)[0] + ":" + curTrail.get(j)[1] + ")";  
+//				line = line + "," + elem;
+//			}
+//			fw.write(line);
+//		}
+//
+//		
+//		String key = this.readHeader(fr);
+//
+//		
+//		int nodes = Integer.parseInt(fr.readLine());
+//
+//		// Construct ParentChild list
+//		Vector = new ArrayList<ParentChild>();
+//		String line = null;
+//		while ((line = fr.readLine()) != null) {
+//			line.split(",");
+//		}
+//		
+//		this.fill(nodes, pcs);
+//		this.traversalorder = pcs;
+//		
+//		
+//		trails = new Vector<Vector<int[]>>;
+//		fr.close();
+//
+//		
+//		
+//		return key;
+		return null;
 	}
 
-	Vector<Vector<int[]>> getTrails(){
+	public Vector<Vector<int[]>> getTrails(){
 		return trails;
 	}
 	
