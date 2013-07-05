@@ -35,6 +35,9 @@
  */
 package gtna.transformation.virtualoverlay;
 
+import gtna.graph.spanningTree.ParentChild;
+import gtna.io.Filewriter;
+
 import java.util.Vector;
 
 /**
@@ -53,7 +56,8 @@ public class Trails extends gtna.graph.GraphProperty {
 	 */
 	@Override
 	public boolean write(String filename, String key) {
-		return true;
+		Filewriter fw = new Filewriter(filename);
+		return fw.close();
 	}
 
 	/* (non-Javadoc)
@@ -64,4 +68,8 @@ public class Trails extends gtna.graph.GraphProperty {
 		return "";
 	}
 
+	Vector<Vector<int[]>> getTrails(){
+		return trails;
+	}
+	
 }
