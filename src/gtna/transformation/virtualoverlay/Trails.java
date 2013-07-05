@@ -35,11 +35,9 @@
  */
 package gtna.transformation.virtualoverlay;
 
-import gtna.graph.spanningTree.ParentChild;
 import gtna.io.Filereader;
 import gtna.io.Filewriter;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 /**
@@ -50,6 +48,9 @@ public class Trails extends gtna.graph.GraphProperty {
 
 	Vector<Vector<int[]>> trails;
 	
+	
+	public Trails(){
+	}
 	public Trails(Vector<Vector<int[]>> trails){
 		this.trails = trails;
 	}
@@ -59,9 +60,7 @@ public class Trails extends gtna.graph.GraphProperty {
 	@Override
 	public boolean write(String filename, String key) {
 		Filewriter fw = new Filewriter(filename);
-		
 		this.writeHeader(fw, this.getClass(), key);
-
 		// iterate over the outer vector
 		for (int i=0; i < trails.size(); i++){
 			Vector<int[]> curTrail = trails.get(i);
@@ -69,8 +68,12 @@ public class Trails extends gtna.graph.GraphProperty {
 			// iterate over the inner vector
 			for (int j=0; j < curTrail.size(); j++){
 				String elem = "(" + curTrail.get(j)[0] + ":" + curTrail.get(j)[1] + ")";  
-				line = line + "," + elem;
+				if (j==0)
+					line = line + elem;
+				else
+					line = line + "," + elem;
 			}
+			line = line + "\n";
 			fw.write(line);
 		}
 		return fw.close();
@@ -81,47 +84,34 @@ public class Trails extends gtna.graph.GraphProperty {
 	 */
 	@Override
 	public String read(String filename) {
-//		Filereader fr = new Filereader(filename);
-//
-//		for (int i=0; i < trails.size(); i++){
-//			Vector<int[]> curTrail = trails.get(i);
-//			String line = "";
-//			// iterate over the inner vector
-//			for (int j=0; j < curTrail.size(); j++){
-//				String elem = "(" + curTrail.get(j)[0] + ":" + curTrail.get(j)[1] + ")";  
-//				line = line + "," + elem;
-//			}
-//			fw.write(line);
-//		}
-//
-//		
-//		String key = this.readHeader(fr);
-//
-//		
-//		int nodes = Integer.parseInt(fr.readLine());
-//
-//		// Construct ParentChild list
-//		Vector = new ArrayList<ParentChild>();
-//		String line = null;
-//		while ((line = fr.readLine()) != null) {
-//			line.split(",");
-//		}
-//		
-//		this.fill(nodes, pcs);
-//		this.traversalorder = pcs;
-//		
-//		
-//		trails = new Vector<Vector<int[]>>;
-//		fr.close();
-//
-//		
-//		
-//		return key;
-		return null;
+		Filereader fr = new Filereader(filename);
+		String key = this.readHeader(fr);
+		
+		trails = new Vector<Vector<int[]>>();
+		
+		String line = null;
+		while ((line = fr.readLine()) != null) {
+			String[] elements = line.split(",");
+			Vector<int[]> trailsPerNode = new Vector<int[]>(elements.length);
+			// iterate over the trails
+			for (int i=0; i < elements.length; i++){
+				int[] trail = new int[2];
+				// first char is '(', second char the start point of the trail 
+				String[] parts = elements[i].split(":");
+				trail[0] = Integer.parseInt(parts[0].substring(1));
+				// third char is end point of the trail
+				trail[1] = Integer.parseInt(parts[1].substring(0,parts[1].length()-1));
+				trailsPerNode.add(trail);
+			}	
+			trails.add(trailsPerNode);
+		}
+		
+		
+		fr.close();
+		return key;
 	}
 
 	public Vector<Vector<int[]>> getTrails(){
 		return trails;
-	}
-	
+	}	
 }
